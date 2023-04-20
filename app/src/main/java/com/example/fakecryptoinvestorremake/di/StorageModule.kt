@@ -6,7 +6,9 @@ import androidx.room.Room
 import com.example.fakecryptoinvestorremake.data.internal.database.FCIRDatabase
 import com.example.fakecryptoinvestorremake.data.internal.database.dao.InvestmentDao
 import com.example.fakecryptoinvestorremake.data.internal.repository.InvestmentRepositoryImp
+import com.example.fakecryptoinvestorremake.domain.repository.CoinRepository
 import com.example.fakecryptoinvestorremake.domain.repository.InvestmentRepository
+import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.*
 import dagger.Module
 import dagger.Provides
@@ -22,24 +24,35 @@ object StorageModule {
     @Singleton
     fun providesFCIRDatabase(app: Application): FCIRDatabase {
         return Room.databaseBuilder(app, FCIRDatabase::class.java, FCIRDatabase.DATABASE_NAME)
-            //.fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration()
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideInvestmentRepository(db: FCIRDatabase) : InvestmentRepository {
+    fun provideInvestmentRepository(db: FCIRDatabase): InvestmentRepository {
         return InvestmentRepositoryImp(db.investmentDao)
     }
 
     @Provides
     @Singleton
-    fun provideInvestmentUseCases(repository: InvestmentRepository): InvestmentUseCases {
+    fun provideInvestmentUseCases(
+        investmentRepository: InvestmentRepository
+    ): InvestmentUseCases {
         return InvestmentUseCases(
-            getInvestments = GetInvestments(repository),
-            getInvestment = GetInvestment(repository),
-            addInvestment = AddInvestment(repository),
-            deleteInvestment = DeleteInvestment(repository)
+            getInvestments = GetInvestments(investmentRepository),
+            getInvestment = GetInvestment(investmentRepository),
+            addInvestment = AddInvestment(investmentRepository),
+            deleteInvestment = DeleteInvestment(investmentRepository)
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideProfitUpdateUseCases(
+        investmentRepository: InvestmentRepository,
+        coinRepository: CoinRepository
+    ): ProfitUpdateUseCase {
+        return ProfitUpdateUseCase(investmentRepository, coinRepository)
     }
 }

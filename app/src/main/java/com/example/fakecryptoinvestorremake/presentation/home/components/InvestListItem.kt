@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.fakecryptoinvestorremake.domain.models.Investment
@@ -30,7 +26,17 @@ fun InvestListItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "${invest.name}",
+            text = String.format("%.2f", invest.profit),
+            style = MaterialTheme.typography.body1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = " ${invest.name} ",
+            style = MaterialTheme.typography.body1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = String.format("%.2f", invest.value),
             style = MaterialTheme.typography.body1,
             overflow = TextOverflow.Ellipsis
         )

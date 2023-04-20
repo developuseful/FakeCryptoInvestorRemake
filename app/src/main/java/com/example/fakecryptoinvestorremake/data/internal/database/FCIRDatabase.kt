@@ -3,6 +3,7 @@ package com.example.fakecryptoinvestorremake.data.internal.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.fakecryptoinvestorremake.data.internal.database.dao.InvestmentDao
+import com.example.fakecryptoinvestorremake.domain.models.BitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.Investment
 
 @Database(

@@ -15,7 +15,6 @@ class GetBitcoinPriceUseCase @Inject constructor(
 ) {
 
     operator fun invoke(): Flow<Resource<Double>> = flow {
-
         try {
             emit(Resource.Loading<Double>())
             val bitcoinPrice = repository.getCoins().get(0).toBitcoinPrice().price

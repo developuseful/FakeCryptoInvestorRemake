@@ -10,6 +10,9 @@ interface InvestmentDao {
     @Query("SELECT * FROM investment")
     fun getInvestments(): Flow<List<Investment>>
 
+    @Query("SELECT * FROM investment")
+    suspend fun getInvestmentsList(): List<Investment>
+
     @Query("SELECT * FROM investment WHERE id = :id")
     suspend fun getInvestmentById(id: Int): Investment
 

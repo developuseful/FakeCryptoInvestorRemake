@@ -7,6 +7,8 @@ interface InvestmentRepository {
 
     fun getInvestments(): Flow<List<Investment>>
 
+    suspend fun getInvestmentsList(): List<Investment>
+
     suspend fun getInvestmentById(id: Int): Investment?
 
     suspend fun insertInvestment(investment: Investment)

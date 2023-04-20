@@ -1,36 +1,40 @@
 package com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases
 
-import com.example.fakecryptoinvestorremake.common.Constants
-import com.example.fakecryptoinvestorremake.common.Resource
 import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.Investment
+import com.example.fakecryptoinvestorremake.domain.repository.CoinRepository
 import com.example.fakecryptoinvestorremake.domain.repository.InvestmentRepository
-import kotlinx.coroutines.flow.Flow
+import com.example.fakecryptoinvestorremake.domain.util.InvestOrder
+import com.example.fakecryptoinvestorremake.domain.util.OrderType
+import kotlinx.coroutines.flow.*
 
 
 class GetInvestments(
     private val investmentRepository: InvestmentRepository
 ) {
+    operator fun invoke(
+        investOrder: InvestOrder = InvestOrder.Date(OrderType.Descending)
+    ): Flow<List<Investment>> {
 
-    operator fun invoke(): Flow<List<Investment>> {
-        return investmentRepository.getInvestments()
+
+        return investmentRepository.getInvestments().map { notes ->
+            when (investOrder.orderType) {
+                is OrderType.Ascending -> {
+                    when (investOrder) {
+                        is InvestOrder.Profit -> notes.sortedBy { it.profit }
+                        is InvestOrder.Date -> notes.sortedBy { it.dateOfCreation }
+                    }
+                }
+                is OrderType.Descending -> {
+                    when (investOrder) {
+                        is InvestOrder.Profit -> notes.sortedByDescending { it.profit }
+                        is InvestOrder.Date -> notes.sortedByDescending { it.dateOfCreation }
+                    }
+                }
+
+            }
+        }
+
+
     }
-
-
-//    operator fun invoke(): Flow<Resource<List<Investment>>> = flow {
-//
-//        try {
-//            emit(Resource.Loading<List<Investment>>())
-//            val investments = investmentRepository.getInvestments()
-//            emit(Resource.Success<List<Investment>>(investments))
-//        } catch (e: HttpException) {
-//            emit(
-//                Resource.Error<List<Investment>>(
-//                    e.localizedMessage ?: Constants.AN_UNEXPECTED_ERROR_OCCURED
-//                )
-//            )
-//        } catch (e: IOException) {
-//            emit(Resource.Error<List<Investment>>("Couldn't reach server. Check your internet connection."))
-//        }
-//    }
 }

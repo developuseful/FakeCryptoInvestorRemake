@@ -8,7 +8,8 @@ data class Investment(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val name: String,
-    val value: Int,
+    val value: Double,
     val hypothesis: String,
-    val dateOfCreation: Long
+    val dateOfCreation: Long,
+    val profit: Double
 )
