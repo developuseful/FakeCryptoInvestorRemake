@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fakecryptoinvestorremake.common.Constants
 import com.example.fakecryptoinvestorremake.common.Resource
+import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.Investment
 import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetBitcoinPriceUseCase
@@ -40,14 +41,13 @@ class HomeViewModel @Inject constructor(
 
     suspend fun profitUpdateUseCase() {
         profitUpdateUseCase.invoke()
-        Log.d("ProfitUpdateUseCase", "viewModel")
     }
 
     private fun getBitcoinPrice() {
         getBitcoinPriceUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _state.value = state.value.copy(bitcoinPrice = result.data, isLoading = false)
+                    _state.value = state.value.copy(coins = result.data, isLoading = false)
                 }
                 is Resource.Error -> {
                     _state.value =
@@ -76,15 +76,17 @@ class HomeViewModel @Inject constructor(
         when (event) {
             HomeEvent.SaveInvestment -> {
                 val investName = state.value.investName
-                val investAmount = state.value.bitcoinPrice
+                val investAmount = state.value.investAmount.toInt()
                 val investHypothesis = state.value.investHypothesis
+                val exchangeRate = state.value.coins?.get(0)?.toBitcoinPrice()?.price
 
 //                if (investName.isBlank() || investAmount == 0 || investHypothesis.isBlank() ){
 //                    return
 //                }
 
                 val investment = Investment(
-                    name = investName, value = investAmount!!,
+                    name = investName, value = investAmount,
+                    exchangeRate = exchangeRate!!,
                     hypothesis = investHypothesis,
                     dateOfCreation = Date().time, profit = 0.0
                 )
@@ -97,7 +99,7 @@ class HomeViewModel @Inject constructor(
                     it.copy(
                         isAddingInvestment = false,
                         investName = "",
-                        investAmount = 0,
+                        investAmount = "",
                         investHypothesis = ""
                     )
                 }

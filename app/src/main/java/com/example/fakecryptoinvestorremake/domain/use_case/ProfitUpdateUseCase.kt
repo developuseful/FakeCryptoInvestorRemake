@@ -9,12 +9,17 @@ class ProfitUpdateUseCase(
     private val coinRepository: CoinRepository
 ) {
     suspend operator fun invoke() {
-        coinRepository.getCoins()[0].toBitcoinPrice().price.let { bitcoinPrice ->
-            investmentRepository.getInvestmentsList().onEach { investment ->
-                investmentRepository.insertInvestment(
-                    investment.copy(profit = 100 - (investment.value * 100 / bitcoinPrice))
-                )
+        try {
+            coinRepository.getCoins()[0].toBitcoinPrice().price.let { bitcoinPrice ->
+                investmentRepository.getInvestmentsList().onEach { investment ->
+                    investmentRepository.insertInvestment(
+                        investment.copy(profit = 100 - (investment.exchangeRate * 100 / bitcoinPrice))
+                    )
+                }
             }
+        } catch (e: Exception){
+
         }
+
     }
 }

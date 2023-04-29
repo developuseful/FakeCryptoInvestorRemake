@@ -39,6 +39,15 @@ fun CreatingAnInvestmentDialog(
                         Text(text = "First name")
                     }
                 )
+                TextField(
+                    value = state.value.investAmount,
+                    onValueChange = {
+                        onEvent(HomeEvent.SetInvestAmount(it))
+                    },
+                    placeholder = {
+                        Text(text = "Сумма инвестирвания")
+                    }
+                )
             }
         },
         buttons = {

@@ -2,6 +2,7 @@ package com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price
 
 import com.example.fakecryptoinvestorremake.common.Constants
 import com.example.fakecryptoinvestorremake.common.Resource
+import com.example.fakecryptoinvestorremake.data.remote.dto.CoinDTO
 import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.repository.CoinRepository
 import kotlinx.coroutines.flow.Flow
@@ -14,19 +15,19 @@ class GetBitcoinPriceUseCase @Inject constructor(
     private val repository: CoinRepository
 ) {
 
-    operator fun invoke(): Flow<Resource<Double>> = flow {
+    operator fun invoke(): Flow<Resource<List<CoinDTO>>> = flow {
         try {
-            emit(Resource.Loading<Double>())
-            val bitcoinPrice = repository.getCoins().get(0).toBitcoinPrice().price
-            emit(Resource.Success<Double>(bitcoinPrice))
+            emit(Resource.Loading<List<CoinDTO>>())
+            val coins = repository.getCoins()
+            emit(Resource.Success<List<CoinDTO>>(coins))
         } catch (e: HttpException) {
             emit(
-                Resource.Error<Double>(
+                Resource.Error<List<CoinDTO>>(
                     e.localizedMessage ?: Constants.AN_UNEXPECTED_ERROR_OCCURED
                 )
             )
         } catch (e: IOException) {
-            emit(Resource.Error<Double>("Couldn't reach server. Check your internet connection."))
+            emit(Resource.Error<List<CoinDTO>>("Couldn't reach server. Check your internet connection."))
         }
     }
 }

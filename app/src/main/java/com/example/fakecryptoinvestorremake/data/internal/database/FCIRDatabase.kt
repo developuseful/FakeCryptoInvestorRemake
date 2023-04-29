@@ -8,7 +8,7 @@ import com.example.fakecryptoinvestorremake.domain.models.Investment
 
 @Database(
     entities = [Investment::class],
-    version = 1
+    version = 9
 )
 abstract class FCIRDatabase: RoomDatabase() {
 

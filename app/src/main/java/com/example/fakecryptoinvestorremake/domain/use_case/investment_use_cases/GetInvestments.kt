@@ -1,12 +1,11 @@
 package com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases
 
-import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.Investment
-import com.example.fakecryptoinvestorremake.domain.repository.CoinRepository
 import com.example.fakecryptoinvestorremake.domain.repository.InvestmentRepository
 import com.example.fakecryptoinvestorremake.domain.util.InvestOrder
 import com.example.fakecryptoinvestorremake.domain.util.OrderType
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 
 class GetInvestments(

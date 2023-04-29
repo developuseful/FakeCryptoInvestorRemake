@@ -3,7 +3,6 @@ package com.example.fakecryptoinvestorremake.presentation.home
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,13 +17,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
+import com.example.fakecryptoinvestorremake.presentation.Screen
 import com.example.fakecryptoinvestorremake.presentation.creating_an_investment.CreatingAnInvestmentDialog
 import com.example.fakecryptoinvestorremake.presentation.home.components.InvestListItem
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
@@ -37,75 +36,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
 
-    /*
-    val state = viewModel.state.collectAsState()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        if (state.value.isAddingInvestment) {
-            CreatingAnInvestmentDialog(state = state, onEvent = viewModel::onEvent)
-        }
-
-        if (state.value.error.isNotBlank()) {
-            Text(
-                text = state.value.error,
-                color = MaterialTheme.colors.error,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .align(Alignment.Center)
-            )
-        }
-
-        if (state.value.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-
-            Column() {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(color = Color.LightGray)
-                        .height(150.dp)
-                )
-                {
-                    Text(
-                        modifier = Modifier.align(Alignment.Center),
-                        text = state.value.bitcoinPrice?.toInt().toString() + "$",
-                        fontSize = 35.sp
-                    )
-                }
-                LazyColumnDemo(state = state)
-            }
-
-
-        }
-
-        FloatingActionButton(
-            onClick = {
-                viewModel.onEvent(HomeEvent.ShowDialog)
-            },
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(25.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "Add FAB",
-                tint = Color.White,
-            )
-        }
-    }
-
-     */
-
     val state = viewModel.state.collectAsState()
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
@@ -114,7 +44,8 @@ fun HomeScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    viewModel.onEvent(HomeEvent.ShowDialog)
+                    navController.navigate(Screen.AddEditInvestmentScreen.route)
+                    //viewModel.onEvent(HomeEvent.ShowDialog)
                 },
                 backgroundColor = MaterialTheme.colors.primary
             ) {
@@ -146,7 +77,6 @@ fun HomeScreen(
                 IconButton(
                     onClick = {
                         viewModel.onEvent(HomeEvent.ToggleOrderSection)
-
                         scope.launch { viewModel.profitUpdateUseCase() }
                     },
                 ) {
@@ -185,26 +115,36 @@ fun HomeScreen(
                 )
             }
 
+
             if (state.value.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(CenterHorizontally)
                 )
             } else {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(color = Color.LightGray)
-                        .height(150.dp)
                 )
                 {
                     Text(
-                        modifier = Modifier.align(Alignment.Center),
-                        text = state.value.bitcoinPrice?.toInt().toString() + "$",
-                        fontSize = 35.sp
+                        text = "BTC " + state.value.coins?.get(0)
+                            ?.toBitcoinPrice()?.price?.toInt().toString() + "$",
+                        fontSize = 25.sp
                     )
+                    /*
+                    Text(
+                        text = "ETH " + state.value.coins?.get(1)
+                            ?.toBitcoinPrice()?.price?.toInt().toString() + "$",
+                        fontSize = 25.sp
+                    )
+                     */
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            LazyColumnDemo(state = state)
+            LazyColumnDemo(
+                navController =navController,
+                state = state
+            )
         }
     }
 
@@ -254,10 +194,21 @@ fun LazyColumnDemo() {
  */
 
 @Composable
-fun LazyColumnDemo(state: State<HomeState>) {
+fun LazyColumnDemo(
+    navController: NavController,
+    state: State<HomeState>
+) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(state.value.investments) { investment ->
-            InvestListItem(invest = investment, onItemClick = { })
+            InvestListItem(
+                invest = investment,
+                onItemClick = {
+                    navController.navigate(
+                        Screen.AddEditInvestmentScreen.route +
+                                "?investId=${investment.id}"
+                    )
+                }
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

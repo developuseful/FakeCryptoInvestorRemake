@@ -5,11 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Investment(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
     val name: String,
-    val value: Double,
+    val value: Int,
+    val exchangeRate: Double,
     val hypothesis: String,
     val dateOfCreation: Long,
-    val profit: Double
+    val profit: Double,
+    @PrimaryKey val id: Int? = null
 )
+
+class InvalidInvestmentException(message: String): Exception(message)
