@@ -24,6 +24,8 @@ fun AddEditInvestmentScreen(
     navController: NavController,
     viewModel: AddEditInvestmentViewModel = hiltViewModel()
 ) {
+
+    //Design
     val nameState = viewModel.investName.value
     val hypothesisState = viewModel.investHypothesis.value
     val valueState = viewModel.investValue.value
