@@ -16,18 +16,20 @@ class GetInvestments(
     ): Flow<List<Investment>> {
 
 
-        return investmentRepository.getInvestments().map { notes ->
+        return investmentRepository.getInvestments().map { investments ->
             when (investOrder.orderType) {
                 is OrderType.Ascending -> {
                     when (investOrder) {
-                        is InvestOrder.Profit -> notes.sortedBy { it.profit }
-                        is InvestOrder.Date -> notes.sortedBy { it.dateOfCreation }
+                        is InvestOrder.Profit -> investments.sortedBy { it.profit }
+                        is InvestOrder.Date -> investments.sortedBy { it.dateOfCreation }
+                        is InvestOrder.Id -> investments.sortedBy { it.id }
                     }
                 }
                 is OrderType.Descending -> {
                     when (investOrder) {
-                        is InvestOrder.Profit -> notes.sortedByDescending { it.profit }
-                        is InvestOrder.Date -> notes.sortedByDescending { it.dateOfCreation }
+                        is InvestOrder.Profit -> investments.sortedByDescending { it.profit }
+                        is InvestOrder.Date -> investments.sortedByDescending { it.dateOfCreation }
+                        is InvestOrder.Id -> investments.sortedByDescending { it.id }
                     }
                 }
 

@@ -1,4 +1,4 @@
-package com.example.fakecryptoinvestorremake.ui.theme
+package com.example.fakecryptoinvestorremake.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

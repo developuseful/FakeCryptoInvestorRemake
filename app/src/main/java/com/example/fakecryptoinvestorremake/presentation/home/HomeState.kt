@@ -13,7 +13,7 @@ data class HomeState(
 
     val investments: List<Investment> = emptyList(),
 
-    val investOrder: InvestOrder = InvestOrder.Date(OrderType.Descending),
+    val investOrder: InvestOrder = InvestOrder.Profit(OrderType.Descending),
     val isOrderSectionVisible: Boolean = false,
 
     val investName: String = "",

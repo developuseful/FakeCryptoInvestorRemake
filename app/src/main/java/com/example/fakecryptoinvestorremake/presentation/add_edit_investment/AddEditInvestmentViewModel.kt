@@ -118,8 +118,6 @@ class AddEditInvestmentViewModel @Inject constructor(
 
                 viewModelScope.launch {
                     try {
-                        //val dateOfCreation = if(currentInvestId == -1) System.currentTimeMillis() else addEditInvestmentState.value.dateOfCreation
-
                         investmentUseCases.addInvestment(
                             Investment(
                                 name = investName.value.text,

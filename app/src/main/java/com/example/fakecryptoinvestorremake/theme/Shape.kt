@@ -1,4 +1,4 @@
-package com.example.fakecryptoinvestorremake.ui.theme
+package com.example.fakecryptoinvestorremake.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes

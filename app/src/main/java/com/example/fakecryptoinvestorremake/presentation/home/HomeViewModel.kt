@@ -35,7 +35,7 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch { profitUpdateUseCase.invoke() }
         getBitcoinPrice()
-        getInvestments(InvestOrder.Date(OrderType.Descending))
+        getInvestments(InvestOrder.Profit(OrderType.Descending))
     }
 
 
@@ -76,7 +76,7 @@ class HomeViewModel @Inject constructor(
         when (event) {
             HomeEvent.SaveInvestment -> {
                 val investName = state.value.investName
-                val investAmount = state.value.investAmount.toInt()
+//                val investAmount = state.value.investAmount.toInt()
                 val investHypothesis = state.value.investHypothesis
                 val exchangeRate = state.value.coins?.get(0)?.toBitcoinPrice()?.price
 
@@ -85,11 +85,14 @@ class HomeViewModel @Inject constructor(
 //                }
 
                 val investment = Investment(
-                    name = investName, value = investAmount,
-                    exchangeRate = exchangeRate!!,
-                    hypothesis = investHypothesis,
-                    dateOfCreation = Date().time, profit = 0.0
-                )
+                        name = "Name",
+                        hypothesis = "",
+                        dateOfCreation = System.currentTimeMillis(),
+                        id = null,
+                        exchangeRate = exchangeRate!!,
+                        profit = 0.0,
+                        value = 1000000
+                    )
 
                 viewModelScope.launch {
                     investmentUseCases.addInvestment(investment)
@@ -99,7 +102,6 @@ class HomeViewModel @Inject constructor(
                     it.copy(
                         isAddingInvestment = false,
                         investName = "",
-                        investAmount = "",
                         investHypothesis = ""
                     )
                 }

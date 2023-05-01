@@ -13,7 +13,8 @@ fun getTimePassed(time: Long): String {
     if (diffDays == 0L) {
         if (diffHours == 0L) {
             if (diffMinutes == 0L) {
-                sb.append("$diffSeconds sec ")
+                //sb.append("$diffSeconds sec ")
+                sb.append("now")
             } else {
                 sb.append("$diffMinutes min ")
             }
@@ -21,7 +22,8 @@ fun getTimePassed(time: Long): String {
             sb.append("$diffHours h ")
         }
     } else {
-        sb.append("$diffDays d ")
+        sb.append("${diffDays}d ")
+        sb.append("${diffHours}h")
     }
     return sb.toString()
 
