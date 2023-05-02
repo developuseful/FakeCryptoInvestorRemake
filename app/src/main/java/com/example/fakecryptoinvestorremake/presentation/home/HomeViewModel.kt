@@ -1,6 +1,5 @@
 package com.example.fakecryptoinvestorremake.presentation.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fakecryptoinvestorremake.common.Constants
@@ -16,7 +15,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,31 +31,31 @@ class HomeViewModel @Inject constructor(
 
 
     init {
-        viewModelScope.launch { profitUpdateUseCase.invoke() }
         getBitcoinPrice()
         getInvestments(InvestOrder.Profit(OrderType.Descending))
     }
 
 
-    suspend fun profitUpdateUseCase() {
-        profitUpdateUseCase.invoke()
+    private fun profitUpdate() {
+        viewModelScope.launch { profitUpdateUseCase.invoke() }
     }
 
     private fun getBitcoinPrice() {
         getBitcoinPriceUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _state.value = state.value.copy(coins = result.data, isLoading = false)
+                    _state.value = state.value.copy(coins = result.data, isLoading = false, error = "")
                 }
                 is Resource.Error -> {
                     _state.value =
-                        HomeState(error = result.message ?: Constants.AN_UNEXPECTED_ERROR_OCCURED)
+                        state.value.copy(error = result.message ?: Constants.AN_UNEXPECTED_ERROR_OCCURED, coins = null, isLoading = false)
                 }
                 is Resource.Loading -> {
-                    _state.value = HomeState(isLoading = true)
+                    _state.value = state.value.copy(isLoading = true, coins = null)
                 }
             }
         }.launchIn(viewModelScope)
+        profitUpdate()
     }
 
     private fun getInvestments(investOrder: InvestOrder) {
@@ -75,21 +73,16 @@ class HomeViewModel @Inject constructor(
     fun onEvent(event: HomeEvent) {
         when (event) {
             HomeEvent.SaveInvestment -> {
-                val investName = state.value.investName
-//                val investAmount = state.value.investAmount.toInt()
-                val investHypothesis = state.value.investHypothesis
-                val exchangeRate = state.value.coins?.get(0)?.toBitcoinPrice()?.price
+                val exchangeRate = state.value.coins?.get(0)?.toBitcoinPrice()?.price ?: return
 
-//                if (investName.isBlank() || investAmount == 0 || investHypothesis.isBlank() ){
-//                    return
-//                }
+                onEvent(HomeEvent.Order(InvestOrder.Id(OrderType.Descending)))
 
                 val investment = Investment(
-                        name = "Name",
+                        name = "Title",
                         hypothesis = "",
                         dateOfCreation = System.currentTimeMillis(),
                         id = null,
-                        exchangeRate = exchangeRate!!,
+                        exchangeRate = exchangeRate,
                         profit = 0.0,
                         value = 1000000
                     )
@@ -97,50 +90,8 @@ class HomeViewModel @Inject constructor(
                 viewModelScope.launch {
                     investmentUseCases.addInvestment(investment)
                 }
+            }
 
-                _state.update {
-                    it.copy(
-                        isAddingInvestment = false,
-                        investName = "",
-                        investHypothesis = ""
-                    )
-                }
-            }
-            is HomeEvent.SetInvestName -> {
-                _state.update {
-                    it.copy(
-                        investName = event.investName
-                    )
-                }
-            }
-            is HomeEvent.SetInvestAmount -> {
-                _state.update {
-                    it.copy(
-                        investAmount = event.investAmount
-                    )
-                }
-            }
-            is HomeEvent.SetInvestHypothesis -> {
-                _state.update {
-                    it.copy(
-                        investHypothesis = event.investHypothesis
-                    )
-                }
-            }
-            HomeEvent.ShowDialog -> {
-                _state.update {
-                    it.copy(
-                        isAddingInvestment = true
-                    )
-                }
-            }
-            HomeEvent.HideDialog -> {
-                _state.update {
-                    it.copy(
-                        isAddingInvestment = false
-                    )
-                }
-            }
             is HomeEvent.Order -> {
                 if (state.value.investOrder::class == event.investOrder::class &&
                     state.value.investOrder.orderType == event.investOrder.orderType
@@ -149,13 +100,18 @@ class HomeViewModel @Inject constructor(
                 }
                 getInvestments(event.investOrder)
             }
-            HomeEvent.RestoreInvest -> {
-                TODO()
-            }
             HomeEvent.ToggleOrderSection -> {
                 _state.value = state.value.copy(
                     isOrderSectionVisible = !state.value.isOrderSectionVisible
                 )
+            }
+
+            HomeEvent.UpdateBitcoinPrice -> {
+                getBitcoinPrice()
+            }
+
+            HomeEvent.ProfitUpdate -> {
+                profitUpdate()
             }
         }
     }

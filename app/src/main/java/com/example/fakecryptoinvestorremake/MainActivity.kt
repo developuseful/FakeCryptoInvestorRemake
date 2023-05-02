@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fakecryptoinvestorremake.presentation.Screen
-import com.example.fakecryptoinvestorremake.presentation.add_edit_investment.AddEditInvestmentScreen
+import com.example.fakecryptoinvestorremake.presentation.view_edit_investment.ViewEditInvestmentScreen
 import com.example.fakecryptoinvestorremake.presentation.home.HomeScreen
 import com.example.fakecryptoinvestorremake.theme.FakeCryptoInvestorRemakeTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(navController)
                         }
                         composable(
-                            route = Screen.AddEditInvestmentScreen.route +
+                            route = Screen.ViewEditInvestmentScreen.route +
                                     "?investId={investId}",
                             arguments = listOf(
                                 navArgument(
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            AddEditInvestmentScreen(
+                            ViewEditInvestmentScreen(
                                 navController = navController
                             )
                         }

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.fakecryptoinvestorremake.domain.models.Investment
+import com.example.fakecryptoinvestorremake.presentation.util.DividingNumberIntoDigits
 import com.example.fakecryptoinvestorremake.presentation.util.getTimePassed
 import com.example.fakecryptoinvestorremake.theme.*
 
@@ -41,15 +42,14 @@ fun InvestListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onItemClick(invest) },
-            //horizontalArrangement = Arrangement.SpaceBetween
         ) {
-
+            val id = if (invest.id != null && invest.id < 10) "${invest.id}  " else invest.id.toString()
             Text(
                 color = Grey666,
                 modifier = Modifier
                     .align(CenterVertically)
                     .padding(start = 28.dp, end = 22.dp),
-                text = invest.id.toString(),
+                text = id,
                 style = MaterialTheme.typography.subtitle1,
             )
 
@@ -61,21 +61,35 @@ fun InvestListItem(
                     .padding(vertical = 12.dp)
             )
 
-            val investProfit = String.format("%.2f", invest.profit)
-            Text(
-                color = if (invest.profit >= 0) GreenSoft else RedSoft,
-                text = if (invest.profit >= 0) "+${investProfit}" else investProfit,
-                style = MaterialTheme.typography.subtitle1,
-                overflow = TextOverflow.Ellipsis,
+            Column(
                 modifier = Modifier
                     .padding(start = 20.dp)
                     .align(CenterVertically)
                     .weight(4f)
-            )
+            ) {
+                val investProfit = String.format("%.2f", invest.profit)
+                val color = if (invest.profit >= 0) GreenSoft else RedSoft
+                val investProfitFormatted = if (invest.profit >= 0) "+${investProfit}%" else "${investProfit}%"
+                Text(
+                    color = color,
+                    text = investProfitFormatted,
+                    style = MaterialTheme.typography.subtitle2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val exchangeRate = DividingNumberIntoDigits(invest.exchangeRate.toInt())
+                Text(
+                    color = Grey666,
+                    text = "$exchangeRate $",
+                    style = MaterialTheme.typography.subtitle2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
 
             val timeHasPassed = getTimePassed(invest.dateOfCreation)
+            val color = if (timeHasPassed == "now") GreenSoft else Grey666
             Text(
-                color = Grey666,
+                color = color,
                 modifier = Modifier
                     .align(CenterVertically)
                     .padding(end = 16.dp),

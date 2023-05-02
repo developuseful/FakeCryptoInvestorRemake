@@ -1,4 +1,4 @@
-package com.example.fakecryptoinvestorremake.presentation.add_edit_investment
+package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -12,7 +12,6 @@ import com.example.fakecryptoinvestorremake.domain.models.InvalidInvestmentExcep
 import com.example.fakecryptoinvestorremake.domain.models.Investment
 import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetBitcoinPriceUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.InvestmentUseCases
-import com.example.fakecryptoinvestorremake.presentation.home.HomeState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,7 +21,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AddEditInvestmentViewModel @Inject constructor(
+class ViewEditInvestmentViewModel @Inject constructor(
     private val investmentUseCases: InvestmentUseCases,
     private val getBitcoinPriceUseCase: GetBitcoinPriceUseCase,
     savedStateHandle: SavedStateHandle
@@ -30,7 +29,7 @@ class AddEditInvestmentViewModel @Inject constructor(
 
     private val _investName = mutableStateOf(
         InvestmentTextFieldState(
-            hint = "Название"
+            hint = "Enter the title"
         )
     )
     val investName: State<InvestmentTextFieldState> = _investName
@@ -44,18 +43,20 @@ class AddEditInvestmentViewModel @Inject constructor(
 
     private val _investValue = mutableStateOf(
         InvestmentTextFieldState(
-            hint = "Сумма"
+            hint = "Enter value"
         )
     )
     val investValue: State<InvestmentTextFieldState> = _investValue
 
-    private val _addEditInvestmentState = mutableStateOf(AddEditInvestmentState())
-    val addEditInvestmentState: State<AddEditInvestmentState> = _addEditInvestmentState
+    private val _viewEditInvestmentState = mutableStateOf(ViewEditInvestmentState())
+    val viewEditInvestmentState: State<ViewEditInvestmentState> = _viewEditInvestmentState
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var currentInvestId: Int? = null
+
+    private var recentlyDeletedInvestment: Investment? = null
 
     init {
         savedStateHandle.get<Int>("investId")?.let { investId ->
@@ -76,11 +77,14 @@ class AddEditInvestmentViewModel @Inject constructor(
                             isHintVisible = false
                         )
 
-                        _addEditInvestmentState.value = addEditInvestmentState.value.copy(
+                        _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
+                            investment = investment,
                             exchangeRate = investment.exchangeRate,
                             dateOfCreation = investment.dateOfCreation,
                             profit = investment.profit
                         )
+
+
                     }
                 }
             } else {
@@ -89,32 +93,32 @@ class AddEditInvestmentViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: AddEditInvestmentEvent) {
+    fun onEvent(event: ViewEditInvestmentEvent) {
         when (event) {
-            is AddEditInvestmentEvent.EnteredName -> {
+            is ViewEditInvestmentEvent.EnteredName -> {
                 _investName.value = investName.value.copy(
                     text = event.value
                 )
             }
-            is AddEditInvestmentEvent.ChangeNameFocus -> {
+            is ViewEditInvestmentEvent.ChangeNameFocus -> {
                 _investName.value = investName.value.copy(
                     isHintVisible = !event.focusState.isFocused &&
                             investName.value.text.isBlank()
                 )
             }
-            is AddEditInvestmentEvent.EnteredHypothesis -> {
+            is ViewEditInvestmentEvent.EnteredHypothesis -> {
                 _investHypothesis.value = _investHypothesis.value.copy(
                     text = event.value
                 )
             }
-            is AddEditInvestmentEvent.ChangeHypothesisFocus -> {
+            is ViewEditInvestmentEvent.ChangeHypothesisFocus -> {
                 _investHypothesis.value = _investHypothesis.value.copy(
                     isHintVisible = !event.focusState.isFocused &&
                             _investHypothesis.value.text.isBlank()
                 )
             }
 
-            is AddEditInvestmentEvent.SaveInvestment -> {
+            is ViewEditInvestmentEvent.SaveInvestment -> {
 
                 viewModelScope.launch {
                     try {
@@ -122,15 +126,13 @@ class AddEditInvestmentViewModel @Inject constructor(
                             Investment(
                                 name = investName.value.text,
                                 hypothesis = investHypothesis.value.text,
-                                dateOfCreation = addEditInvestmentState.value.dateOfCreation,
+                                dateOfCreation = viewEditInvestmentState.value.dateOfCreation,
                                 id = currentInvestId,
-                                exchangeRate = addEditInvestmentState.value.exchangeRate,
-                                profit = addEditInvestmentState.value.profit,
+                                exchangeRate = viewEditInvestmentState.value.exchangeRate,
+                                profit = viewEditInvestmentState.value.profit,
                                 value = investValue.value.text.toInt()
                             )
                         )
-
-
                         _eventFlow.emit(UiEvent.SaveInvest)
                     } catch (e: InvalidInvestmentException) {
                         _eventFlow.emit(
@@ -142,16 +144,37 @@ class AddEditInvestmentViewModel @Inject constructor(
                 }
 
             }
-            is AddEditInvestmentEvent.ChangeValueFocus -> {
+            is ViewEditInvestmentEvent.ChangeValueFocus -> {
                 _investValue.value = _investValue.value.copy(
                     isHintVisible = !event.focusState.isFocused &&
                             _investValue.value.text.isBlank()
                 )
             }
-            is AddEditInvestmentEvent.EnteredValue -> {
+            is ViewEditInvestmentEvent.EnteredValue -> {
                 _investValue.value = _investValue.value.copy(
                     text = event.value
                 )
+            }
+            is ViewEditInvestmentEvent.DeleteInvestment -> {
+                viewModelScope.launch {
+                    try {
+                        investmentUseCases.deleteInvestment(event.investment)
+                        recentlyDeletedInvestment = event.investment
+                        _eventFlow.emit(UiEvent.DeleteInvest)
+                    } catch(e: Exception) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't delete investment"
+                            )
+                        )
+                    }
+                }
+            }
+            ViewEditInvestmentEvent.RestoreInvest -> {
+                viewModelScope.launch {
+                    investmentUseCases.addInvestment(recentlyDeletedInvestment ?: return@launch)
+                    recentlyDeletedInvestment = null
+                }
             }
         }
     }
@@ -160,19 +183,19 @@ class AddEditInvestmentViewModel @Inject constructor(
         getBitcoinPriceUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _addEditInvestmentState.value = addEditInvestmentState.value.copy(
+                    _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
                         exchangeRate = result.data?.get(0)?.toBitcoinPrice()?.price ?: 0.0,
                         isLoading = false
                     )
                 }
                 is Resource.Error -> {
-                    _addEditInvestmentState.value =
-                        AddEditInvestmentState(
+                    _viewEditInvestmentState.value =
+                        ViewEditInvestmentState(
                             error = result.message ?: Constants.AN_UNEXPECTED_ERROR_OCCURED
                         )
                 }
                 is Resource.Loading -> {
-                    _addEditInvestmentState.value = AddEditInvestmentState(isLoading = true)
+                    _viewEditInvestmentState.value = ViewEditInvestmentState(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
@@ -181,5 +204,6 @@ class AddEditInvestmentViewModel @Inject constructor(
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
         object SaveInvest : UiEvent()
+        object DeleteInvest : UiEvent()
     }
 }

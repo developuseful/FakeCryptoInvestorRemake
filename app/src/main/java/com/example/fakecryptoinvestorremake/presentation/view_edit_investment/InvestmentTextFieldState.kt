@@ -1,4 +1,4 @@
-package com.example.fakecryptoinvestorremake.presentation.add_edit_investment
+package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 data class InvestmentTextFieldState(
     val text: String = "",

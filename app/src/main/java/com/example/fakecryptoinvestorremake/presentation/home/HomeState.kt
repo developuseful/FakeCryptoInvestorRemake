@@ -7,17 +7,11 @@ import com.example.fakecryptoinvestorremake.domain.util.OrderType
 
 data class HomeState(
     val isLoading: Boolean = false,
-    val bitcoinPrice: Double? = null,
     val coins: List<CoinDTO>? = null,
     val error: String = "",
 
     val investments: List<Investment> = emptyList(),
 
     val investOrder: InvestOrder = InvestOrder.Profit(OrderType.Descending),
-    val isOrderSectionVisible: Boolean = false,
-
-    val investName: String = "",
-    val investAmount: String = "",
-    val investHypothesis: String = "",
-    val isAddingInvestment: Boolean = false,
+    val isOrderSectionVisible: Boolean = false
 )
