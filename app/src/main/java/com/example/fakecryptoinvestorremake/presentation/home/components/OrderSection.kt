@@ -48,13 +48,13 @@ fun OrderSection(
             modifier = Modifier.clickable { onOrderChange(InvestOrder.Date(noteOrder.orderType)) }
         )
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.arrow_up_one_px),
+            imageVector = ImageVector.vectorResource(R.drawable.arrow_down_one_px),
             modifier = Modifier.clickable { onOrderChange(noteOrder.copy(OrderType.Ascending)) },
             contentDescription = "Ascending",
             tint = if (noteOrder.orderType is OrderType.Ascending) GreenSoft else Grey666
         )
         Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.arrow_down_one_px),
+            imageVector = ImageVector.vectorResource(R.drawable.arrow_up_one_px),
             modifier = Modifier.clickable { onOrderChange(noteOrder.copy(OrderType.Descending)) },
             contentDescription = "Descending",
             tint = if (noteOrder.orderType is OrderType.Descending) GreenSoft else Grey666

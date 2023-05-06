@@ -75,10 +75,13 @@ class HomeViewModel @Inject constructor(
             HomeEvent.SaveInvestment -> {
                 val exchangeRate = state.value.coins?.get(0)?.toBitcoinPrice()?.price ?: return
 
+                _state.value = state.value.copy(
+                    isOrderSectionVisible = true
+                )
                 onEvent(HomeEvent.Order(InvestOrder.Id(OrderType.Descending)))
 
                 val investment = Investment(
-                        name = "Title",
+                        name = "",
                         hypothesis = "",
                         dateOfCreation = System.currentTimeMillis(),
                         id = null,

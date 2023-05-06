@@ -1,5 +1,8 @@
 package com.example.fakecryptoinvestorremake.presentation.util
 
+import java.text.SimpleDateFormat
+import java.util.*
+
 fun getTimePassed(time: Long): String {
     val diff: Long = System.currentTimeMillis() - time
 
@@ -7,6 +10,7 @@ fun getTimePassed(time: Long): String {
     val diffMinutes = diff / (60 * 1000) % 60
     val diffHours = diff / (60 * 60 * 1000) % 24
     val diffDays = diff / (24 * 60 * 60 * 1000)
+    val diffYears: Long = diff / (24 * 60 * 60 * 1000)
 
 
     val sb = StringBuilder()
@@ -27,6 +31,7 @@ fun getTimePassed(time: Long): String {
     }
     return sb.toString()
 
+
     /*
     when{
         diffMinutes < 1 ->  sb.append("$diffSeconds сек")
@@ -42,6 +47,12 @@ fun getTimePassed(time: Long): String {
             sb.append(diffMinutes + " мин ");
         }
          */
-
-
 }
+
+
+fun getDateFormatted(date: Long): String? {
+    val df =
+        SimpleDateFormat("d MMM yyyy HH:mm", Locale.getDefault())
+    return df.format(date)
+}
+

@@ -3,12 +3,16 @@ package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,8 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fakecryptoinvestorremake.R
-import com.example.fakecryptoinvestorremake.presentation.util.DividingNumberIntoDigits
-import com.example.fakecryptoinvestorremake.presentation.util.DividingNumberIntoDigitsDouble
+import com.example.fakecryptoinvestorremake.presentation.util.*
 import com.example.fakecryptoinvestorremake.presentation.view_edit_investment.components.TransparentHintTextField
 import com.example.fakecryptoinvestorremake.theme.*
 import kotlinx.coroutines.flow.collectLatest
@@ -40,104 +43,22 @@ fun ViewEditInvestmentScreen(
     val valueState = viewModel.investValue.value
     val hypothesisState = viewModel.investHypothesis.value
 
-    val currentInvestment = viewModel.viewEditInvestmentState.value.investment
-
-
-/*    val scaffoldState = rememberScaffoldState()
-
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(key1 = true) {
-        viewModel.eventFlow.collectLatest { event ->
-            when (event) {
-                is AddEditInvestmentViewModel.UiEvent.ShowSnackbar -> {
-                    scaffoldState.snackbarHostState.showSnackbar(
-                        message = event.message
-                    )
-                }
-                is AddEditInvestmentViewModel.UiEvent.SaveInvest -> {
-                    navController.navigateUp()
-                }
-            }
-        }
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.onEvent(AddEditInvestmentEvent.SaveInvestment)
-                },
-                backgroundColor = MaterialTheme.colors.primary
-            ) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = "Save note")
-            }
-        },
-        scaffoldState = scaffoldState
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            TransparentHintTextField(
-                text = nameState.text,
-                hint = nameState.hint,
-                onValueChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.EnteredName(it))
-                },
-                onFocusChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.ChangeNameFocus(it))
-                },
-                isHintVisible = nameState.isHintVisible,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.h5
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TransparentHintTextField(
-                text = hypothesisState.text,
-                hint = hypothesisState.hint,
-                onValueChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.EnteredHypothesis(it))
-                },
-                onFocusChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.ChangeHypothesisFocus(it))
-                },
-                isHintVisible = hypothesisState.isHintVisible,
-                textStyle = MaterialTheme.typography.body1,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TransparentHintTextField(
-                text = valueState.text,
-                hint = valueState.hint,
-                onValueChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.EnteredValue(it))
-                },
-                onFocusChange = {
-                    viewModel.onEvent(AddEditInvestmentEvent.ChangeValueFocus(it))
-                },
-                isHintVisible = valueState.isHintVisible,
-                textStyle = MaterialTheme.typography.body1
-            )
-
-        }
-    }
-
- */
-
+    val viewEditInvestmentState = viewModel.viewEditInvestmentState.value
+    val currentInvestment = viewEditInvestmentState.currentInvestment
 
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is ViewEditInvestmentViewModel.UiEvent.ShowSnackbar -> {
-                    scaffoldState.snackbarHostState.showSnackbar(
-                        message = event.message
-                    )
+                    scope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = event.message
+                        )
+                    }
                 }
                 is ViewEditInvestmentViewModel.UiEvent.SaveInvest -> {}
                 ViewEditInvestmentViewModel.UiEvent.DeleteInvest -> {
@@ -176,7 +97,7 @@ fun ViewEditInvestmentScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 FloatingActionButton(
                     onClick = {
-
+                        viewModel.onEvent(ViewEditInvestmentEvent.SaveInvestment)
                     },
                     backgroundColor = WhiteSoft
                 ) {
@@ -186,16 +107,12 @@ fun ViewEditInvestmentScreen(
                         fontWeight = FontWeight.W300
                     )
                 }
-
             }
         },
         scaffoldState = scaffoldState,
         backgroundColor = Background
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             Card(
                 shape = RoundedCornerShape(
                     topStart = 0.dp,
@@ -207,30 +124,34 @@ fun ViewEditInvestmentScreen(
                     .fillMaxWidth(),
                 backgroundColor = GreyDark2,
                 elevation = 5.dp,
-
-                ) {
+            ) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 25.dp)
                         .padding(top = 15.dp)
                 ) {
-                    IconButton(
-                        onClick = {
-                            navController.navigateUp()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.arrow_back_one_px),
-                            contentDescription = "Back",
-                            tint = WhiteSoft
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.arrow_back_one_px),
+                        contentDescription = "Back",
+                        tint = WhiteSoft,
+                        modifier = Modifier
+                            .clickable { navController.navigateUp() }
+                            .padding(vertical = 24.dp)
+                    )
+                    Row() {
+                        Text(
+                            text = "ID:",
+                            color = WhiteSoft,
+                            style = MaterialTheme.typography.h4
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = currentInvestment?.id.toString(),
+                            color = WhiteSoft,
+                            style = MaterialTheme.typography.h4
                         )
                     }
-                    Text(
-                        text = "Detailing",
-                        color = WhiteSoft,
-                        style = MaterialTheme.typography.h4
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(11.dp))
                     TransparentHintTextField(
                         text = nameState.text,
                         hint = nameState.hint,
@@ -253,7 +174,9 @@ fun ViewEditInvestmentScreen(
                 }
             }
             Spacer(modifier = Modifier.height(11.dp))
-            Column() {
+            Column(
+                modifier = Modifier.verticalScroll(scrollState)
+            ) {
                 Card(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
@@ -265,39 +188,44 @@ fun ViewEditInvestmentScreen(
                             shape = RoundedCornerShape(8.dp)
                         ),
                     backgroundColor = androidx.compose.ui.graphics.Color.White,
-
-                    ) {
-
+                ) {
                     Column(
                         modifier = Modifier
-                            .padding(start = 16.dp, top = 22.dp)
+                            .padding(start = 16.dp, top = 22.dp, end = 32.dp)
                     ) {
                         Text(
                             text = "Investment amount:",
                             color = GreyDark2,
                             style = MaterialTheme.typography.h6,
-                            )
+                        )
                         Spacer(modifier = Modifier.height(11.dp))
-                        val maxChar = 25
+
+                        val maxChar = 15
+                        val pattern = remember { Regex("^\\d*\\.?\\d*\$") }
                         TransparentHintTextField(
                             text = valueState.text,
                             hint = valueState.hint,
                             onValueChange = {
-                                if(it.length <= maxChar){
-                                    viewModel.onEvent(ViewEditInvestmentEvent.EnteredValue(it))
+
+                                if (it.isEmpty() || it.matches(pattern)) {
+                                    if (it.length <= maxChar) {
+                                        viewModel.onEvent(ViewEditInvestmentEvent.EnteredValue(it))
+                                    }
                                 }
+
                             },
                             onFocusChange = {
                                 viewModel.onEvent(ViewEditInvestmentEvent.ChangeValueFocus(it))
                             },
                             isHintVisible = valueState.isHintVisible,
-                            textStyle  = TextStyle(
+                            textStyle = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Normal,
                                 color = Grey666,
                                 textDecoration = TextDecoration.Underline
                             ),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            visualTransformation = ThousandSeparatorTransformation()
                         )
                         Spacer(modifier = Modifier.height(28.dp))
                         Text(
@@ -314,17 +242,18 @@ fun ViewEditInvestmentScreen(
                         var profitValue = ""
                         var profitValueFormatted = "0"
 
-                        if (currentInvestment?.profit != null){
+                        if (currentInvestment?.profit != null) {
                             investProfit = String.format("%.2f", currentInvestment.profit)
                             color = if (currentInvestment.profit >= 0) GreenSoft else RedSoft
-                            investProfitFormatted = if (currentInvestment.profit >= 0) "+${investProfit}%" else "${investProfit}%"
+                            investProfitFormatted =
+                                if (currentInvestment.profit >= 0) "+${investProfit}%" else "${investProfit}%"
 
-                            if (valueState.text != ""){
-                                profitValue = DividingNumberIntoDigitsDouble((valueState.text.toDouble() * currentInvestment.profit / 100))
-                                profitValueFormatted = if (currentInvestment.profit >= 0) "+${profitValue}" else profitValue
+                            if (valueState.text != "") {
+                                profitValue =
+                                    dividingNumberIntoDigitsDouble((valueState.text.toDouble() * currentInvestment.profit / 100))
+                                profitValueFormatted =
+                                    if (currentInvestment.profit >= 0) "+${profitValue}" else profitValue
                             }
-
-
                         }
 
                         Row() {
@@ -335,8 +264,171 @@ fun ViewEditInvestmentScreen(
                         Spacer(modifier = Modifier.height(28.dp))
                     }
                 }
+                Spacer(modifier = Modifier.height(11.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .border(
+                            width = 1.dp,
+                            color = GreyLight,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    backgroundColor = androidx.compose.ui.graphics.Color.White
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 22.dp)
+                    ) {
+                        Text(
+                            text = "Investment rate:",
+                            color = GreyDark2,
+                            style = MaterialTheme.typography.h6,
+                        )
+                        Spacer(modifier = Modifier.height(11.dp))
+
+                        var investmentRate = "No data"
+                        if (currentInvestment?.exchangeRate != null) {
+                            investmentRate =
+                                dividingNumberIntoDigitsDouble(currentInvestment.exchangeRate).dollarSignAtTheEnd()
+                        }
+                        Text(text = investmentRate, color = Grey666)
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        Text(
+                            text = "Current exchange rate:",
+                            color = GreyDark2,
+                            style = MaterialTheme.typography.h6,
+                        )
+                        Spacer(modifier = Modifier.height(11.dp))
+
+                        var color = Grey666
+                        var currentExchangeRate = ""
+
+                        if (viewEditInvestmentState.error.isBlank()) {
+                            currentExchangeRate =
+                                dividingNumberIntoDigitsDouble(viewEditInvestmentState.currentExchangeRate).dollarSignAtTheEnd()
+                            if (currentInvestment?.profit != null) {
+                                color = if (currentInvestment.profit >= 0) GreenSoft else RedSoft
+                            }
+                        } else {
+                            currentExchangeRate = viewEditInvestmentState.error
+                            color = RedSoft
+                        }
+
+                        Text(
+                            text = currentExchangeRate,
+                            color = color,
+                            modifier = Modifier
+                                .clickable { viewModel.onEvent(ViewEditInvestmentEvent.GetBitcoinPrice) }
+                        )
+                        Spacer(modifier = Modifier.height(28.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(11.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .border(
+                            width = 1.dp,
+                            color = GreyLight,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    backgroundColor = androidx.compose.ui.graphics.Color.White
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 22.dp)
+                    ) {
+                        Text(
+                            text = "Attachment date:",
+                            color = GreyDark2,
+                            style = MaterialTheme.typography.h6,
+                        )
+                        Spacer(modifier = Modifier.height(11.dp))
+
+                        val dateOfCreation = if (currentInvestment?.dateOfCreation != null) {
+                            getDateFormatted(currentInvestment.dateOfCreation)
+                        } else {
+                            "No data"
+                        }
+
+                        Text(text = dateOfCreation!!, color = Grey666)
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        Text(
+                            text = "Time has passed:",
+                            color = GreyDark2,
+                            style = MaterialTheme.typography.h6,
+                        )
+                        Spacer(modifier = Modifier.height(11.dp))
+
+                        var timePassed = "No data"
+                        if (currentInvestment?.dateOfCreation != null) {
+                            timePassed = getTimePassed(currentInvestment.dateOfCreation)
+                        }
+                        Text(text = timePassed, color = Grey666)
+
+                        Spacer(modifier = Modifier.height(28.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(11.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .border(
+                            width = 1.dp,
+                            color = GreyLight,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    backgroundColor = androidx.compose.ui.graphics.Color.White
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 22.dp, end = 32.dp)
+                    ) {
+                        Text(
+                            text = "Hypothesis:",
+                            color = GreyDark2,
+                            style = MaterialTheme.typography.h6,
+                        )
+                        Spacer(modifier = Modifier.height(11.dp))
+                        TransparentHintTextField(
+                            text = hypothesisState.text,
+                            hint = hypothesisState.hint,
+                            onValueChange = {
+                                viewModel.onEvent(ViewEditInvestmentEvent.EnteredHypothesis(it))
+                            },
+                            onFocusChange = {
+                                viewModel.onEvent(ViewEditInvestmentEvent.ChangeHypothesisFocus(it))
+                            },
+                            isHintVisible = hypothesisState.isHintVisible,
+                            textStyle = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = Grey666,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(28.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(300.dp))
             }
 
         }
     }
 }
+
+
+

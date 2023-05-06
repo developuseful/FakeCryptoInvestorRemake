@@ -15,9 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.fakecryptoinvestorremake.domain.models.Investment
-import com.example.fakecryptoinvestorremake.presentation.util.DividingNumberIntoDigits
+import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigitsDouble
+import com.example.fakecryptoinvestorremake.presentation.util.dollarSignAtTheEnd
 import com.example.fakecryptoinvestorremake.presentation.util.getTimePassed
-import com.example.fakecryptoinvestorremake.theme.*
+import com.example.fakecryptoinvestorremake.theme.GreenSoft
+import com.example.fakecryptoinvestorremake.theme.Grey666
+import com.example.fakecryptoinvestorremake.theme.GreyLight
+import com.example.fakecryptoinvestorremake.theme.RedSoft
 
 @Composable
 fun InvestListItem(
@@ -76,10 +80,10 @@ fun InvestListItem(
                     style = MaterialTheme.typography.subtitle2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                val exchangeRate = DividingNumberIntoDigits(invest.exchangeRate.toInt())
+                val investmentRate = dividingNumberIntoDigitsDouble(invest.exchangeRate).dollarSignAtTheEnd()
                 Text(
                     color = Grey666,
-                    text = "$exchangeRate $",
+                    text = investmentRate,
                     style = MaterialTheme.typography.subtitle2,
                     overflow = TextOverflow.Ellipsis,
                 )

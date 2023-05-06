@@ -15,5 +15,7 @@ sealed class ViewEditInvestmentEvent{
     data class DeleteInvestment(val investment: Investment): ViewEditInvestmentEvent()
 
     object RestoreInvest: ViewEditInvestmentEvent()
+
+    object GetBitcoinPrice: ViewEditInvestmentEvent()
 }
 

@@ -23,18 +23,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fakecryptoinvestorremake.R
-import com.example.fakecryptoinvestorremake.common.Resource
 import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
-import com.example.fakecryptoinvestorremake.domain.util.InvestOrder
-import com.example.fakecryptoinvestorremake.domain.util.OrderType
 import com.example.fakecryptoinvestorremake.presentation.Screen
 import com.example.fakecryptoinvestorremake.presentation.home.components.InvestListItem
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
-import com.example.fakecryptoinvestorremake.presentation.util.DividingNumberIntoDigits
+import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigitsDouble
 import com.example.fakecryptoinvestorremake.theme.Background
 import com.example.fakecryptoinvestorremake.theme.GreyDark2
 import com.example.fakecryptoinvestorremake.theme.WhiteSoft
-import kotlinx.coroutines.launch
 import java.util.*
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -99,11 +95,12 @@ fun HomeScreen(
                                 color = WhiteSoft
                             )
                         } else {
-
-                            val bitcoinPrice = DividingNumberIntoDigits(
-                                state.value.coins?.get(0)
-                                    ?.toBitcoinPrice()?.price?.toInt()
-                            )
+                            val bitcoinPrice = state.value.coins?.get(0)
+                                ?.toBitcoinPrice()?.price?.let { double ->
+                                    dividingNumberIntoDigitsDouble(
+                                        double
+                                    )
+                                }
 
                             val bitcoinPriceFormatted = if (bitcoinPrice == "null") "Refresh" else "BTC $bitcoinPrice $"
 
