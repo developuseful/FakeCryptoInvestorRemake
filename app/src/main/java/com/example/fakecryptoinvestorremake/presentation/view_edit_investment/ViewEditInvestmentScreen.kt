@@ -1,11 +1,13 @@
 package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -16,9 +18,11 @@ import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -67,8 +71,6 @@ fun ViewEditInvestmentScreen(
             }
         }
     }
-
-
 
     Scaffold(
         floatingActionButton = {
@@ -231,7 +233,7 @@ fun ViewEditInvestmentScreen(
                                 color = Grey666,
                                 textDecoration = TextDecoration.Underline
                             ),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             visualTransformation = ThousandSeparatorTransformation()
                         )
                         Spacer(modifier = Modifier.height(28.dp))
@@ -310,6 +312,7 @@ fun ViewEditInvestmentScreen(
                                                         2 -> widthPurchaseCommission = 25.dp
                                                         3 -> widthPurchaseCommission = 35.dp
                                                     }
+                                                    val focusManager = LocalFocusManager.current
                                                     BasicTextField(
                                                         value = viewEditInvestmentState.purchaseCommission,
                                                         onValueChange = {
@@ -329,9 +332,8 @@ fun ViewEditInvestmentScreen(
                                                             color = Grey666,
                                                             textDecoration = TextDecoration.Underline
                                                         ),
-                                                        keyboardOptions = KeyboardOptions(
-                                                            keyboardType = KeyboardType.Decimal
-                                                        )
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                                                     )
                                                     Text(
                                                         text = "%",
@@ -365,6 +367,7 @@ fun ViewEditInvestmentScreen(
                                                     2 -> widthSalesCommission = 25.dp
                                                     3 -> widthSalesCommission = 35.dp
                                                 }
+                                                val focusManager = LocalFocusManager.current
                                                 BasicTextField(
                                                     value = viewEditInvestmentState.salesCommission,
                                                     onValueChange = {
@@ -384,7 +387,8 @@ fun ViewEditInvestmentScreen(
                                                         color = Grey666,
                                                         textDecoration = TextDecoration.Underline
                                                     ),
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                                                 )
                                                 Text(
                                                     text = "%",
