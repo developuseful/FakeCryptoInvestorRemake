@@ -71,22 +71,28 @@ fun InvestListItem(
                     .align(CenterVertically)
                     .weight(4f)
             ) {
-                val investProfit = String.format("%.2f", invest.profit)
-                val color = if (invest.profit >= 0) GreenSoft else RedSoft
-                val investProfitFormatted = if (invest.profit >= 0) "+${investProfit}%" else "${investProfit}%"
+                Text(
+                    color = Grey666,
+                    text = invest.symbol,
+                    style = MaterialTheme.typography.subtitle2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val investProfit = String.format("%.2f", invest.profitPercentage)
+                val color = if (invest.profitPercentage >= 0) GreenSoft else RedSoft
+                val investProfitFormatted = if (invest.profitPercentage >= 0) "+${investProfit}%" else "${investProfit}%"
                 Text(
                     color = color,
                     text = investProfitFormatted,
                     style = MaterialTheme.typography.subtitle2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                val investmentRate = dividingNumberIntoDigitsDouble(invest.exchangeRate).dollarSignAtTheEnd()
-                Text(
-                    color = Grey666,
-                    text = investmentRate,
-                    style = MaterialTheme.typography.subtitle2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+//                val investmentRate = dividingNumberIntoDigitsDouble(invest.exchangeRate).dollarSignAtTheEnd()
+//                Text(
+//                    color = Grey666,
+//                    text = investmentRate,
+//                    style = MaterialTheme.typography.subtitle2,
+//                    overflow = TextOverflow.Ellipsis,
+//                )
             }
 
 

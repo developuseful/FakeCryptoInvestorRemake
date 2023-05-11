@@ -20,14 +20,14 @@ class GetInvestments(
             when (investOrder.orderType) {
                 is OrderType.Ascending -> {
                     when (investOrder) {
-                        is InvestOrder.Profit -> investments.sortedBy { it.profit }
+                        is InvestOrder.Profit -> investments.sortedBy { it.profitPercentage }
                         is InvestOrder.Date -> investments.sortedBy { it.dateOfCreation }
                         is InvestOrder.Id -> investments.sortedBy { it.id }
                     }
                 }
                 is OrderType.Descending -> {
                     when (investOrder) {
-                        is InvestOrder.Profit -> investments.sortedByDescending { it.profit }
+                        is InvestOrder.Profit -> investments.sortedByDescending { it.profitPercentage }
                         is InvestOrder.Date -> investments.sortedByDescending { it.dateOfCreation }
                         is InvestOrder.Id -> investments.sortedByDescending { it.id }
                     }

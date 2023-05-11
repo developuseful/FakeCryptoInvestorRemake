@@ -13,5 +13,6 @@ data class HomeState(
     val investments: List<Investment> = emptyList(),
 
     val investOrder: InvestOrder = InvestOrder.Profit(OrderType.Descending),
-    val isOrderSectionVisible: Boolean = false
+    val isOrderSectionVisible: Boolean = false,
+    val isAddSectionVisible: Boolean = false
 )

@@ -11,6 +11,11 @@ data class Investment(
     val hypothesis: String,
     val dateOfCreation: Long,
     val profit: Double,
+    val purchaseCommission: Int = 3,
+    val salesCommission: Int = 3,
+    val exchangeRateVolatility: Double,
+    val profitPercentage: Double,
+    val symbol: String,
     @PrimaryKey val id: Int? = null
 )
 

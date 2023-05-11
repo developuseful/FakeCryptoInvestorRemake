@@ -7,4 +7,7 @@ data class ViewEditInvestmentState(
     val currentExchangeRate: Double = 0.0,
     val isLoading: Boolean = false,
     val error: String = "",
+    val isCommissionSectionVisible: Boolean = false,
+    val purchaseCommission: String = "0",
+    val salesCommission: String = "0"
 )

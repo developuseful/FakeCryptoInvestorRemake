@@ -16,6 +16,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.fakecryptoinvestorremake.theme.Grey666
+import com.example.fakecryptoinvestorremake.theme.WhiteSoft
 
 @Composable
 fun TransparentHintTextField(

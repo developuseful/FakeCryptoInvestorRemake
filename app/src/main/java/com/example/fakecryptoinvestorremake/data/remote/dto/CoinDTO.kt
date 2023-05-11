@@ -1,6 +1,6 @@
 package com.example.fakecryptoinvestorremake.data.remote.dto
 
-import com.example.fakecryptoinvestorremake.domain.models.BitcoinPrice
+import com.example.fakecryptoinvestorremake.domain.models.CoinPrice
 
 data class CoinDTO(
     val id: String,
@@ -9,8 +9,8 @@ data class CoinDTO(
     val symbol: String
 )
 
-fun CoinDTO.toBitcoinPrice() : BitcoinPrice {
-    return BitcoinPrice(
+fun CoinDTO.toCoinPrice() : CoinPrice {
+    return CoinPrice(
         price = metrics.market_data.price_usd
     )
 }

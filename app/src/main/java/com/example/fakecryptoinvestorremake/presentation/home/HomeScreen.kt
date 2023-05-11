@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -23,7 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fakecryptoinvestorremake.R
-import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
+import com.example.fakecryptoinvestorremake.data.remote.dto.toCoinPrice
+import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.presentation.Screen
 import com.example.fakecryptoinvestorremake.presentation.home.components.InvestListItem
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
@@ -33,6 +35,7 @@ import com.example.fakecryptoinvestorremake.theme.GreyDark2
 import com.example.fakecryptoinvestorremake.theme.WhiteSoft
 import java.util.*
 
+@OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
@@ -44,22 +47,55 @@ fun HomeScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-
-
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewModel.onEvent(HomeEvent.SaveInvestment)
-                },
-                backgroundColor = GreyDark2
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.baseline_add_24),
-                    contentDescription = "Add note",
-                    tint = WhiteSoft
-                )
+
+            Column {
+                AnimatedVisibility(
+                    visible = state.value.isAddSectionVisible,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
+                ) {
+                    Column{
+                        FloatingActionButton(
+                            onClick = {
+                                viewModel.onEvent(HomeEvent.SaveInvestment(CoinType.ETH))
+                                viewModel.onEvent(HomeEvent.ToggleAddSection)
+                            },
+                            backgroundColor = GreyDark2
+                        ) {
+                            Text(text = CoinType.ETH.symbol, color = WhiteSoft)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        FloatingActionButton(
+                            onClick = {
+                                viewModel.onEvent(HomeEvent.SaveInvestment(CoinType.BTC))
+                                viewModel.onEvent(HomeEvent.ToggleAddSection)
+                            },
+                            backgroundColor = GreyDark2
+                        ) {
+                            Text(text = CoinType.BTC.symbol, color = WhiteSoft)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.onEvent(HomeEvent.ToggleAddSection)
+                    },
+                    backgroundColor = GreyDark2
+                ) {
+                    Icon(
+                        imageVector = if (state.value.isAddSectionVisible)
+                            ImageVector.vectorResource(R.drawable.baseline_remove_24)
+                        else ImageVector.vectorResource(R.drawable.baseline_add_24),
+                        contentDescription = "Add note",
+                        tint = WhiteSoft
+                    )
+                }
             }
+
         },
         scaffoldState = scaffoldState,
         backgroundColor = Background
@@ -80,7 +116,7 @@ fun HomeScreen(
                 backgroundColor = GreyDark2,
                 elevation = 5.dp
             ) {
-                Column() {
+                Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -95,22 +131,43 @@ fun HomeScreen(
                                 color = WhiteSoft
                             )
                         } else {
-                            val bitcoinPrice = state.value.coins?.get(0)
-                                ?.toBitcoinPrice()?.price?.let { double ->
-                                    dividingNumberIntoDigitsDouble(
-                                        double
-                                    )
-                                }
+                            val bitcoinPrice =
+                                state.value.coins?.find { it.symbol == CoinType.BTC.symbol }
+                                    ?.toCoinPrice()?.price?.let { double ->
+                                        dividingNumberIntoDigitsDouble(
+                                            double
+                                        )
+                                    }
 
-                            val bitcoinPriceFormatted = if (bitcoinPrice == "null") "Refresh" else "BTC $bitcoinPrice $"
+                            val bitcoinPriceFormatted =
+                                if (bitcoinPrice == "null") "Refresh" else "BTC  $bitcoinPrice $"
 
-                            Text(
-                                text = bitcoinPriceFormatted,
-                                color = WhiteSoft,
-                                style = MaterialTheme.typography.h4,
+                            val ethereumPrice =
+                                state.value.coins?.find { it.symbol == CoinType.ETH.symbol }
+                                    ?.toCoinPrice()?.price?.let { double ->
+                                        dividingNumberIntoDigitsDouble(
+                                            double
+                                        )
+                                    }
+
+                            val ethereumPriceFormatted =
+                                if (ethereumPrice == "null") "Refresh" else "ETH  $ethereumPrice $"
+
+                            Column(
                                 modifier = Modifier
-                                    .clickable { viewModel.onEvent(HomeEvent.UpdateBitcoinPrice) }
-                            )
+                                    .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) }
+                            ) {
+                                Text(
+                                    text = bitcoinPriceFormatted,
+                                    color = WhiteSoft,
+                                    style = MaterialTheme.typography.h5
+                                )
+                                Text(
+                                    text = ethereumPriceFormatted,
+                                    color = WhiteSoft,
+                                    style = MaterialTheme.typography.h5
+                                )
+                            }
                         }
 
 
@@ -119,6 +176,8 @@ fun HomeScreen(
                                 viewModel.onEvent(HomeEvent.ToggleOrderSection)
                                 viewModel.onEvent(HomeEvent.ProfitUpdate)
                             },
+                            modifier = Modifier
+                                .align(Bottom)
                         ) {
                             Icon(
                                 imageVector = if (state.value.isOrderSectionVisible) ImageVector.vectorResource(

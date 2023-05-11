@@ -2,18 +2,18 @@ package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment.Companion.Bottom
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -138,19 +138,26 @@ fun ViewEditInvestmentScreen(
                             .clickable { navController.navigateUp() }
                             .padding(vertical = 24.dp)
                     )
-                    Row() {
+                    Row{
+                        Text(
+                            text = currentInvestment?.symbol.toString(),
+                            color = WhiteSoft,
+                            style = MaterialTheme.typography.h5
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "ID:",
-                            color = WhiteSoft,
-                            style = MaterialTheme.typography.h4
+                            color = Grey666,
+                            style = MaterialTheme.typography.h5
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = currentInvestment?.id.toString(),
-                            color = WhiteSoft,
-                            style = MaterialTheme.typography.h4
+                            color = Grey666,
+                            style = MaterialTheme.typography.h5
                         )
                     }
+
                     Spacer(modifier = Modifier.height(11.dp))
                     TransparentHintTextField(
                         text = nameState.text,
@@ -164,7 +171,7 @@ fun ViewEditInvestmentScreen(
                         isHintVisible = nameState.isHintVisible,
                         singleLine = true,
                         textStyle = TextStyle(
-                            fontSize = 24.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = WhiteSoft,
                             textDecoration = TextDecoration.Underline
@@ -191,7 +198,7 @@ fun ViewEditInvestmentScreen(
                 ) {
                     Column(
                         modifier = Modifier
-                            .padding(start = 16.dp, top = 22.dp, end = 32.dp)
+                            .padding(start = 16.dp, top = 22.dp, end = 16.dp)
                     ) {
                         Text(
                             text = "Investment amount:",
@@ -228,10 +235,176 @@ fun ViewEditInvestmentScreen(
                             visualTransformation = ThousandSeparatorTransformation()
                         )
                         Spacer(modifier = Modifier.height(28.dp))
+
+
+                        // Commission
+                        Card(
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = 1.dp,
+                                    color = GreyLight,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(vertical = 16.dp)
+                                    .padding(start = 16.dp, end = 28.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Commission:",
+                                        color = GreyDark2,
+                                        style = MaterialTheme.typography.h6
+                                    )
+                                    Icon(
+                                        imageVector = if (viewEditInvestmentState.isCommissionSectionVisible)
+                                            ImageVector.vectorResource(R.drawable.arrow_up)
+                                        else ImageVector.vectorResource(R.drawable.arrow_down),
+                                        contentDescription = "Expand block",
+                                        tint = Grey666,
+                                        modifier = Modifier
+                                            .align(CenterVertically)
+                                            .clickable { viewModel.onEvent(ViewEditInvestmentEvent.ToggleCommissionSection) }
+                                    )
+                                }
+
+                                AnimatedVisibility(
+                                    visible = viewEditInvestmentState.isCommissionSectionVisible,
+                                    enter = fadeIn() + slideInVertically(),
+                                    exit = fadeOut() + slideOutVertically()
+                                ) {
+
+                                    Column() {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(vertical = 16.dp)
+                                                .fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = "Purchase commission:",
+                                                    color = GreyDark2,
+                                                    style = MaterialTheme.typography.subtitle1
+                                                )
+                                                Row(
+                                                    modifier = Modifier.align(alignment = Bottom)
+                                                ) {
+                                                    val maxCharPurchaseCommission = 3
+                                                    var widthPurchaseCommission = 15.dp
+                                                    when (viewEditInvestmentState.purchaseCommission.length) {
+                                                        0 -> widthPurchaseCommission = 15.dp
+                                                        1 -> widthPurchaseCommission = 15.dp
+                                                        2 -> widthPurchaseCommission = 25.dp
+                                                        3 -> widthPurchaseCommission = 35.dp
+                                                    }
+                                                    BasicTextField(
+                                                        value = viewEditInvestmentState.purchaseCommission,
+                                                        onValueChange = {
+                                                            if (it.length <= maxCharPurchaseCommission) {
+                                                                viewModel.onEvent(
+                                                                    ViewEditInvestmentEvent.EnteredPurchaseCommission(
+                                                                        it
+                                                                    )
+                                                                )
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .width(widthPurchaseCommission),
+                                                        textStyle = TextStyle(
+                                                            fontSize = 16.sp,
+                                                            fontWeight = FontWeight.Normal,
+                                                            color = Grey666,
+                                                            textDecoration = TextDecoration.Underline
+                                                        ),
+                                                        keyboardOptions = KeyboardOptions(
+                                                            keyboardType = KeyboardType.Decimal
+                                                        )
+                                                    )
+                                                    Text(
+                                                        text = "%",
+                                                        color = Grey666,
+                                                        style = MaterialTheme.typography.subtitle1,
+                                                        modifier = Modifier.align(alignment = Bottom)
+                                                    )
+                                                }
+                                            }
+
+                                        }
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Sales commission:",
+                                                color = GreyDark2,
+                                                style = MaterialTheme.typography.subtitle1
+                                            )
+                                            Row(
+                                                modifier = Modifier.align(alignment = Bottom)
+                                            ) {
+                                                val maxCharSalesCommission = 3
+                                                var widthSalesCommission = 15.dp
+                                                when (viewEditInvestmentState.salesCommission.length) {
+                                                    0 -> widthSalesCommission = 15.dp
+                                                    1 -> widthSalesCommission = 15.dp
+                                                    2 -> widthSalesCommission = 25.dp
+                                                    3 -> widthSalesCommission = 35.dp
+                                                }
+                                                BasicTextField(
+                                                    value = viewEditInvestmentState.salesCommission,
+                                                    onValueChange = {
+                                                        if (it.length <= maxCharSalesCommission) {
+                                                            viewModel.onEvent(
+                                                                ViewEditInvestmentEvent.EnteredSalesCommission(
+                                                                    it
+                                                                )
+                                                            )
+                                                        }
+                                                    },
+                                                    modifier = Modifier
+                                                        .width(widthSalesCommission),
+                                                    textStyle = TextStyle(
+                                                        fontSize = 16.sp,
+                                                        fontWeight = FontWeight.Normal,
+                                                        color = Grey666,
+                                                        textDecoration = TextDecoration.Underline
+                                                    ),
+                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                                                )
+                                                Text(
+                                                    text = "%",
+                                                    color = Grey666,
+                                                    style = MaterialTheme.typography.subtitle1,
+                                                    modifier = Modifier.align(alignment = Bottom)
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Text(
                             text = "Profit:",
                             color = GreyDark2,
-                            style = MaterialTheme.typography.h6,
+                            style = MaterialTheme.typography.h6
                         )
                         Spacer(modifier = Modifier.height(11.dp))
 
@@ -242,17 +415,18 @@ fun ViewEditInvestmentScreen(
                         var profitValue = ""
                         var profitValueFormatted = "0"
 
-                        if (currentInvestment?.profit != null) {
-                            investProfit = String.format("%.2f", currentInvestment.profit)
-                            color = if (currentInvestment.profit >= 0) GreenSoft else RedSoft
+                        if (currentInvestment?.profitPercentage != null) {
+                            investProfit = String.format("%.2f", currentInvestment.profitPercentage)
+                            color =
+                                if (currentInvestment.profitPercentage >= 0) GreenSoft else RedSoft
                             investProfitFormatted =
-                                if (currentInvestment.profit >= 0) "+${investProfit}%" else "${investProfit}%"
+                                if (currentInvestment.profitPercentage >= 0) "+${investProfit}%" else "${investProfit}%"
 
                             if (valueState.text != "") {
                                 profitValue =
-                                    dividingNumberIntoDigitsDouble((valueState.text.toDouble() * currentInvestment.profit / 100))
+                                    dividingNumberIntoDigitsDouble((valueState.text.toDouble() * currentInvestment.profitPercentage / 100))
                                 profitValueFormatted =
-                                    if (currentInvestment.profit >= 0) "+${profitValue}" else profitValue
+                                    if (currentInvestment.profitPercentage >= 0) "+${profitValue}" else profitValue
                             }
                         }
 
@@ -311,20 +485,34 @@ fun ViewEditInvestmentScreen(
                         if (viewEditInvestmentState.error.isBlank()) {
                             currentExchangeRate =
                                 dividingNumberIntoDigitsDouble(viewEditInvestmentState.currentExchangeRate).dollarSignAtTheEnd()
-                            if (currentInvestment?.profit != null) {
-                                color = if (currentInvestment.profit >= 0) GreenSoft else RedSoft
+                            if (currentInvestment?.exchangeRateVolatility != null) {
+                                color =
+                                    if (currentInvestment.exchangeRateVolatility >= 0) GreenSoft else RedSoft
                             }
                         } else {
                             currentExchangeRate = viewEditInvestmentState.error
                             color = RedSoft
                         }
 
-                        Text(
-                            text = currentExchangeRate,
-                            color = color,
-                            modifier = Modifier
-                                .clickable { viewModel.onEvent(ViewEditInvestmentEvent.GetBitcoinPrice) }
-                        )
+                        var exchangeRateVolatility = ""
+                        var exchangeRateVolatilityFormatted = ""
+                        if (currentInvestment?.exchangeRateVolatility != null) {
+                            exchangeRateVolatility =
+                                String.format("%.2f", currentInvestment.exchangeRateVolatility)
+                            exchangeRateVolatilityFormatted =
+                                if (currentInvestment.exchangeRateVolatility >= 0) "+${exchangeRateVolatility}%" else "${exchangeRateVolatility}%"
+                        }
+                        Row() {
+                            Text(
+                                text = currentExchangeRate,
+                                color = color,
+                                modifier = Modifier
+                                    .clickable { viewModel.onEvent(ViewEditInvestmentEvent.GetCoinPrice) }
+                            )
+                            Spacer(modifier = Modifier.width(24.dp))
+                            Text(text = exchangeRateVolatilityFormatted, color = color)
+                        }
+
                         Spacer(modifier = Modifier.height(28.dp))
                     }
                 }

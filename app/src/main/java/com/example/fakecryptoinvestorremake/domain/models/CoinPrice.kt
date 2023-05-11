@@ -1,8 +1,6 @@
 package com.example.fakecryptoinvestorremake.domain.models
 
-import androidx.room.Entity
 
-
-data class BitcoinPrice(
+data class CoinPrice(
     val price: Double
 )

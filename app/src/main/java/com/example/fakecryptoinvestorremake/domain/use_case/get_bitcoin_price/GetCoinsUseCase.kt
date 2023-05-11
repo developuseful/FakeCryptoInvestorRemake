@@ -3,7 +3,6 @@ package com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price
 import com.example.fakecryptoinvestorremake.common.Constants
 import com.example.fakecryptoinvestorremake.common.Resource
 import com.example.fakecryptoinvestorremake.data.remote.dto.CoinDTO
-import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
 import com.example.fakecryptoinvestorremake.domain.repository.CoinRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -11,7 +10,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-class GetBitcoinPriceUseCase @Inject constructor(
+class GetCoinsUseCase @Inject constructor(
     private val repository: CoinRepository
 ) {
 

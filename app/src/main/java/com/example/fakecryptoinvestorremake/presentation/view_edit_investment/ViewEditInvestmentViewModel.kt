@@ -7,11 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fakecryptoinvestorremake.common.Constants
 import com.example.fakecryptoinvestorremake.common.Resource
-import com.example.fakecryptoinvestorremake.data.remote.dto.toBitcoinPrice
+import com.example.fakecryptoinvestorremake.data.remote.dto.toCoinPrice
+import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.domain.models.InvalidInvestmentException
 import com.example.fakecryptoinvestorremake.domain.models.Investment
 import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
-import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetBitcoinPriceUseCase
+import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetCoinsUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.InvestmentUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewEditInvestmentViewModel @Inject constructor(
     private val investmentUseCases: InvestmentUseCases,
-    private val getBitcoinPriceUseCase: GetBitcoinPriceUseCase,
+    private val getCoinsUseCase: GetCoinsUseCase,
     private val profitUpdateUseCase: ProfitUpdateUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -84,12 +85,15 @@ class ViewEditInvestmentViewModel @Inject constructor(
                     )
 
                     _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
-                        currentInvestment = investment
+                        currentInvestment = investment,
+                        purchaseCommission = investment.purchaseCommission.toString(),
+                        salesCommission = investment.salesCommission.toString()
                     )
+                    getBitcoinPrice(CoinType.valueOf(investment.symbol))
                 }
             }
         }
-        getBitcoinPrice()
+
     }
 
     fun onEvent(event: ViewEditInvestmentEvent) {
@@ -118,12 +122,22 @@ class ViewEditInvestmentViewModel @Inject constructor(
             }
 
             is ViewEditInvestmentEvent.SaveInvestment -> {
+                val purchaseCommission = if(viewEditInvestmentState.value.purchaseCommission != "")
+                    viewEditInvestmentState.value.purchaseCommission.toInt()
+                else 0
+
+                val salesCommission = if (viewEditInvestmentState.value.salesCommission != "")
+                    viewEditInvestmentState.value.salesCommission.toInt()
+                else 0
+
                 viewModelScope.launch {
                     try {
                         viewEditInvestmentState.value.currentInvestment?.copy(
                             name = investName.value.text,
                             value = investValue.value.text.toInt(),
-                            hypothesis = investHypothesis.value.text
+                            hypothesis = investHypothesis.value.text,
+                            purchaseCommission = purchaseCommission,
+                            salesCommission = salesCommission
                         )?.let { investment ->
                             investmentUseCases.addInvestment(
                                 investment = investment
@@ -178,14 +192,71 @@ class ViewEditInvestmentViewModel @Inject constructor(
                     recentlyDeletedInvestment = null
                 }
             }
-            ViewEditInvestmentEvent.GetBitcoinPrice -> {
+            ViewEditInvestmentEvent.GetCoinPrice -> {
                 getBitcoinPrice()
+            }
+            is ViewEditInvestmentEvent.EnteredPurchaseCommission -> {
+                _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
+                    purchaseCommission = event.value
+                )
+
+                val purchaseCommission = if (event.value != "") event.value.trim().toInt() else 0
+                viewModelScope.launch {
+                    try {
+                        viewEditInvestmentState.value.currentInvestment?.copy(
+                            purchaseCommission = purchaseCommission
+                        )?.let { investment ->
+                            investmentUseCases.addInvestment(
+                                investment = investment
+                            )
+                            profitUpdateUseCase.invoke()
+                            reloadCurrentInvestment()
+                        }
+                    } catch (e: InvalidInvestmentException) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't save note"
+                            )
+                        )
+                    }
+                }
+            }
+            is ViewEditInvestmentEvent.EnteredSalesCommission -> {
+                _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
+                    salesCommission = event.value
+                )
+
+                val salesCommission = if (event.value != "") event.value.trim().toInt() else 0
+                viewModelScope.launch {
+                    try {
+                        viewEditInvestmentState.value.currentInvestment?.copy(
+                            salesCommission = salesCommission
+                        )?.let { investment ->
+                            investmentUseCases.addInvestment(
+                                investment = investment
+                            )
+                            profitUpdateUseCase.invoke()
+                            reloadCurrentInvestment()
+                        }
+                    } catch (e: InvalidInvestmentException) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't save note"
+                            )
+                        )
+                    }
+                }
+            }
+            ViewEditInvestmentEvent.ToggleCommissionSection -> {
+                _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
+                    isCommissionSectionVisible = !viewEditInvestmentState.value.isCommissionSectionVisible
+                )
             }
         }
     }
 
-    private fun getBitcoinPrice() {
-        getBitcoinPriceUseCase().onEach { result ->
+    private fun getBitcoinPrice(coinType: CoinType? = null) {
+        getCoinsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     profitUpdateUseCase.invoke()
@@ -193,7 +264,7 @@ class ViewEditInvestmentViewModel @Inject constructor(
                         investmentUseCases.getInvestment(currentInvestId!!)?.also { investment ->
                             _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
                                 currentInvestment = investment,
-                                currentExchangeRate = result.data?.get(0)?.toBitcoinPrice()?.price ?: 0.0,
+                                currentExchangeRate = result.data?.find { it.symbol == coinType?.symbol }?.toCoinPrice()?.price ?: 0.0,
                                 isLoading = false,
                                 error = ""
                             )
@@ -214,6 +285,15 @@ class ViewEditInvestmentViewModel @Inject constructor(
 
     }
 
+    private suspend fun reloadCurrentInvestment(){
+        if(currentInvestId != null){
+            investmentUseCases.getInvestment(currentInvestId!!)?.also { investment ->
+                _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
+                    currentInvestment = investment,
+                )
+            }
+        }
+    }
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
         object SaveInvest : UiEvent()
