@@ -2,6 +2,7 @@ package com.example.fakecryptoinvestorremake.presentation.home
 
 
 import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -29,7 +31,7 @@ import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.presentation.Screen
 import com.example.fakecryptoinvestorremake.presentation.home.components.InvestListItem
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
-import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigitsDouble
+import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigits
 import com.example.fakecryptoinvestorremake.theme.Background
 import com.example.fakecryptoinvestorremake.theme.GreyDark2
 import com.example.fakecryptoinvestorremake.theme.WhiteSoft
@@ -49,14 +51,13 @@ fun HomeScreen(
 
     Scaffold(
         floatingActionButton = {
-
             Column {
                 AnimatedVisibility(
                     visible = state.value.isAddSectionVisible,
                     enter = fadeIn() + scaleIn(),
                     exit = fadeOut() + scaleOut()
                 ) {
-                    Column{
+                    Column {
                         FloatingActionButton(
                             onClick = {
                                 viewModel.onEvent(HomeEvent.SaveInvestment(CoinType.ETH))
@@ -131,44 +132,55 @@ fun HomeScreen(
                                 color = WhiteSoft
                             )
                         } else {
-                            val bitcoinPrice =
-                                state.value.coins?.find { it.symbol == CoinType.BTC.symbol }
-                                    ?.toCoinPrice()?.price?.let { double ->
-                                        dividingNumberIntoDigitsDouble(
-                                            double
-                                        )
-                                    }
 
-                            val bitcoinPriceFormatted =
-                                if (bitcoinPrice == "null") "Refresh" else "BTC  $bitcoinPrice $"
+                            if (state.value.coins != null) {
+                                val bitcoinPrice =
+                                    state.value.coins?.find { it.symbol == CoinType.BTC.symbol }
+                                        ?.toCoinPrice()?.price?.let { double ->
+                                            dividingNumberIntoDigits(
+                                                double
+                                            )
+                                        }
 
-                            val ethereumPrice =
-                                state.value.coins?.find { it.symbol == CoinType.ETH.symbol }
-                                    ?.toCoinPrice()?.price?.let { double ->
-                                        dividingNumberIntoDigitsDouble(
-                                            double
-                                        )
-                                    }
+                                val bitcoinPriceFormatted = "BTC  $bitcoinPrice $"
 
-                            val ethereumPriceFormatted =
-                                if (ethereumPrice == "null") "Refresh" else "ETH  $ethereumPrice $"
+                                val ethereumPrice =
+                                    state.value.coins?.find { it.symbol == CoinType.ETH.symbol }
+                                        ?.toCoinPrice()?.price?.let { double ->
+                                            dividingNumberIntoDigits(
+                                                double
+                                            )
+                                        }
 
-                            Column(
-                                modifier = Modifier
-                                    .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) }
-                            ) {
+                                val ethereumPriceFormatted = "ETH  $ethereumPrice $"
+
+                                Column(
+                                    modifier = Modifier
+                                        .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) }
+                                ){
+                                    Text(
+                                        text = bitcoinPriceFormatted,
+                                        color = WhiteSoft,
+                                        style = MaterialTheme.typography.h5
+                                    )
+                                    Text(
+                                        text = ethereumPriceFormatted,
+                                        color = WhiteSoft,
+                                        style = MaterialTheme.typography.h5
+                                    )
+                                }
+                            }  else {
                                 Text(
-                                    text = bitcoinPriceFormatted,
+                                    text = "Click to update",
                                     color = WhiteSoft,
-                                    style = MaterialTheme.typography.h5
-                                )
-                                Text(
-                                    text = ethereumPriceFormatted,
-                                    color = WhiteSoft,
-                                    style = MaterialTheme.typography.h5
+                                    style = MaterialTheme.typography.h5,
+                                    modifier = Modifier
+                                    .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) },
+                                    textDecoration =  TextDecoration.Underline
                                 )
                             }
                         }
+
 
 
                         IconButton(
@@ -222,29 +234,28 @@ fun HomeScreen(
                         .align(CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-            }
-
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 11.dp)
-            ) {
-                items(state.value.investments) { investment ->
-                    InvestListItem(
-                        invest = investment,
-                        onItemClick = {
-                            navController.navigate(
-                                Screen.ViewEditInvestmentScreen.route +
-                                        "?investId=${investment.id}"
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 11.dp)
+                ) {
+                    items(state.value.investments) { investment ->
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            InvestListItem(
+                                invest = investment,
+                                onItemClick = {
+                                    navController.navigate(
+                                        Screen.ViewEditInvestmentScreen.route +
+                                                "?investId=${investment.id}"
+                                    )
+                                }
                             )
                         }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
-
-
         }
     }
 

@@ -1,5 +1,8 @@
 package com.example.fakecryptoinvestorremake.presentation.home.components
 
+
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,19 +13,18 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.fakecryptoinvestorremake.domain.models.Investment
-import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigitsDouble
-import com.example.fakecryptoinvestorremake.presentation.util.dollarSignAtTheEnd
 import com.example.fakecryptoinvestorremake.presentation.util.getTimePassed
-import com.example.fakecryptoinvestorremake.theme.GreenSoft
-import com.example.fakecryptoinvestorremake.theme.Grey666
-import com.example.fakecryptoinvestorremake.theme.GreyLight
-import com.example.fakecryptoinvestorremake.theme.RedSoft
+import com.example.fakecryptoinvestorremake.theme.*
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun InvestListItem(
     invest: Investment,
@@ -71,12 +73,6 @@ fun InvestListItem(
                     .align(CenterVertically)
                     .weight(4f)
             ) {
-                Text(
-                    color = Grey666,
-                    text = invest.symbol,
-                    style = MaterialTheme.typography.subtitle2,
-                    overflow = TextOverflow.Ellipsis,
-                )
                 val investProfit = String.format("%.2f", invest.profitPercentage)
                 val color = if (invest.profitPercentage >= 0) GreenSoft else RedSoft
                 val investProfitFormatted = if (invest.profitPercentage >= 0) "+${investProfit}%" else "${investProfit}%"
@@ -86,17 +82,15 @@ fun InvestListItem(
                     style = MaterialTheme.typography.subtitle2,
                     overflow = TextOverflow.Ellipsis,
                 )
-//                val investmentRate = dividingNumberIntoDigitsDouble(invest.exchangeRate).dollarSignAtTheEnd()
-//                Text(
-//                    color = Grey666,
-//                    text = investmentRate,
-//                    style = MaterialTheme.typography.subtitle2,
-//                    overflow = TextOverflow.Ellipsis,
-//                )
+                Text(
+                    color = Grey666,
+                    text = invest.symbol,
+                    style = MaterialTheme.typography.subtitle2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
 
-
-            val timeHasPassed = getTimePassed(invest.dateOfCreation)
+            val timeHasPassed = getTimePassed(time = invest.dateOfCreation)
             val color = if (timeHasPassed == "now") GreenSoft else Grey666
             Text(
                 color = color,
@@ -104,7 +98,7 @@ fun InvestListItem(
                     .align(CenterVertically)
                     .padding(end = 16.dp),
                 text = timeHasPassed,
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.subtitle2,
                 overflow = TextOverflow.Ellipsis
             )
         }

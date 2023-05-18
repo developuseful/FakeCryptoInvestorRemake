@@ -197,7 +197,7 @@ class ViewEditInvestmentViewModel @Inject constructor(
             }
             is ViewEditInvestmentEvent.EnteredPurchaseCommission -> {
                 _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
-                    purchaseCommission = event.value
+                    purchaseCommission =  event.value
                 )
 
                 val purchaseCommission = if (event.value != "") event.value.trim().toInt() else 0

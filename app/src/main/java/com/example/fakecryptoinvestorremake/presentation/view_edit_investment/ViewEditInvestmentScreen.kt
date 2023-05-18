@@ -1,7 +1,6 @@
 package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -149,13 +149,13 @@ fun ViewEditInvestmentScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "ID:",
-                            color = Grey666,
+                            color = WhiteSoft,
                             style = MaterialTheme.typography.h5
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = currentInvestment?.id.toString(),
-                            color = Grey666,
+                            color = WhiteSoft,
                             style = MaterialTheme.typography.h5
                         )
                     }
@@ -305,13 +305,7 @@ fun ViewEditInvestmentScreen(
                                                     modifier = Modifier.align(alignment = Bottom)
                                                 ) {
                                                     val maxCharPurchaseCommission = 3
-                                                    var widthPurchaseCommission = 15.dp
-                                                    when (viewEditInvestmentState.purchaseCommission.length) {
-                                                        0 -> widthPurchaseCommission = 15.dp
-                                                        1 -> widthPurchaseCommission = 15.dp
-                                                        2 -> widthPurchaseCommission = 25.dp
-                                                        3 -> widthPurchaseCommission = 35.dp
-                                                    }
+                                                    val widthPurchaseCommission = sizeTextField(viewEditInvestmentState.purchaseCommission.length)
                                                     val focusManager = LocalFocusManager.current
                                                     BasicTextField(
                                                         value = viewEditInvestmentState.purchaseCommission,
@@ -332,7 +326,7 @@ fun ViewEditInvestmentScreen(
                                                             color = Grey666,
                                                             textDecoration = TextDecoration.Underline
                                                         ),
-                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                                                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                                                     )
                                                     Text(
@@ -360,13 +354,7 @@ fun ViewEditInvestmentScreen(
                                                 modifier = Modifier.align(alignment = Bottom)
                                             ) {
                                                 val maxCharSalesCommission = 3
-                                                var widthSalesCommission = 15.dp
-                                                when (viewEditInvestmentState.salesCommission.length) {
-                                                    0 -> widthSalesCommission = 15.dp
-                                                    1 -> widthSalesCommission = 15.dp
-                                                    2 -> widthSalesCommission = 25.dp
-                                                    3 -> widthSalesCommission = 35.dp
-                                                }
+                                                val widthSalesCommission = sizeTextField(viewEditInvestmentState.salesCommission.length)
                                                 val focusManager = LocalFocusManager.current
                                                 BasicTextField(
                                                     value = viewEditInvestmentState.salesCommission,
@@ -387,7 +375,7 @@ fun ViewEditInvestmentScreen(
                                                         color = Grey666,
                                                         textDecoration = TextDecoration.Underline
                                                     ),
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                                                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                                                 )
                                                 Text(
@@ -428,7 +416,7 @@ fun ViewEditInvestmentScreen(
 
                             if (valueState.text != "") {
                                 profitValue =
-                                    dividingNumberIntoDigitsDouble((valueState.text.toDouble() * currentInvestment.profitPercentage / 100))
+                                    dividingNumberIntoDigits((valueState.text.toDouble() * currentInvestment.profitPercentage / 100))
                                 profitValueFormatted =
                                     if (currentInvestment.profitPercentage >= 0) "+${profitValue}" else profitValue
                             }
@@ -470,7 +458,7 @@ fun ViewEditInvestmentScreen(
                         var investmentRate = "No data"
                         if (currentInvestment?.exchangeRate != null) {
                             investmentRate =
-                                dividingNumberIntoDigitsDouble(currentInvestment.exchangeRate).dollarSignAtTheEnd()
+                                dividingNumberIntoDigits(currentInvestment.exchangeRate).dollarSignAtTheEnd()
                         }
                         Text(text = investmentRate, color = Grey666)
 
@@ -488,7 +476,7 @@ fun ViewEditInvestmentScreen(
 
                         if (viewEditInvestmentState.error.isBlank()) {
                             currentExchangeRate =
-                                dividingNumberIntoDigitsDouble(viewEditInvestmentState.currentExchangeRate).dollarSignAtTheEnd()
+                                dividingNumberIntoDigits(viewEditInvestmentState.currentExchangeRate).dollarSignAtTheEnd()
                             if (currentInvestment?.exchangeRateVolatility != null) {
                                 color =
                                     if (currentInvestment.exchangeRateVolatility >= 0) GreenSoft else RedSoft
@@ -622,5 +610,11 @@ fun ViewEditInvestmentScreen(
     }
 }
 
-
+fun sizeTextField(length: Int): Dp {
+    return when (length) {
+        2 -> 25.dp
+        3 -> 35.dp
+        else -> 15.dp
+    }
+}
 

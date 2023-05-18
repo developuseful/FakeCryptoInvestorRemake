@@ -8,7 +8,7 @@ import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
 
-fun dividingNumberIntoDigitsDouble(number: Double): String{
+fun dividingNumberIntoDigits(number: Double): String{
     val string = String.format(
         Locale.CANADA_FRENCH, "%,f", number)
     return string.substring(0, string.indexOf(","))

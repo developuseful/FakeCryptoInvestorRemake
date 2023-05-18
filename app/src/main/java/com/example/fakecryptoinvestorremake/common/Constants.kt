@@ -11,5 +11,5 @@ object Constants {
     const val PARAM_COIN_ID = "coinId"
 
     // Error
-    const val AN_UNEXPECTED_ERROR_OCCURED = "An unexpected error occured"
+    const val AN_UNEXPECTED_ERROR_OCCURED = "An unexpected error occurred"
 }

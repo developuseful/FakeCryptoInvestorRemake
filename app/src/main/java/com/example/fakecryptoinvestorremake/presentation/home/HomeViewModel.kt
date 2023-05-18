@@ -102,6 +102,7 @@ class HomeViewModel @Inject constructor(
                     name = "",
                     hypothesis = "",
                     dateOfCreation = System.currentTimeMillis(),
+                    //dateOfCreation = 0,
                     id = null,
                     exchangeRate = exchangeRate,
                     profit = 0.0,
