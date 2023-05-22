@@ -1,6 +1,8 @@
 package com.example.fakecryptoinvestorremake.presentation.view_edit_investment
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -9,10 +11,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -30,12 +33,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fakecryptoinvestorremake.R
+import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.presentation.util.*
 import com.example.fakecryptoinvestorremake.presentation.view_edit_investment.components.TransparentHintTextField
 import com.example.fakecryptoinvestorremake.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ViewEditInvestmentScreen(
@@ -54,6 +60,9 @@ fun ViewEditInvestmentScreen(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, { viewModel.refresh() })
+
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -64,55 +73,30 @@ fun ViewEditInvestmentScreen(
                         )
                     }
                 }
-                is ViewEditInvestmentViewModel.UiEvent.SaveInvest -> {}
-                ViewEditInvestmentViewModel.UiEvent.DeleteInvest -> {
-                    navController.navigateUp()
-                }
             }
         }
     }
 
     Scaffold(
         floatingActionButton = {
-            Column() {
-                FloatingActionButton(
-                    onClick = {
-                        viewModel.onEvent(ViewEditInvestmentEvent.DeleteInvestment(investment = currentInvestment!!))
-                        scope.launch {
-                            val result = scaffoldState.snackbarHostState.showSnackbar(
-                                message = "Note deleted",
-                                actionLabel = "Undo"
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                viewModel.onEvent(ViewEditInvestmentEvent.RestoreInvest)
-                            }
-                        }
-                    },
-                    backgroundColor = WhiteSoft
-                ) {
-                    Text(
-                        text = "delete",
-                        color = RedLight,
-                        fontWeight = FontWeight.W300
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
                 FloatingActionButton(
                     onClick = {
                         viewModel.onEvent(ViewEditInvestmentEvent.SaveInvestment)
                     },
-                    backgroundColor = WhiteSoft
+                    backgroundColor = GreyDark2
                 ) {
                     Text(
                         text = "save",
-                        color = Grey666,
-                        fontWeight = FontWeight.W300
+                        color = WhiteSoft,
+                        fontWeight = FontWeight.W400
                     )
                 }
-            }
+
         },
         scaffoldState = scaffoldState,
-        backgroundColor = Background
+        backgroundColor = Background,
+        modifier = Modifier
+            .pullRefresh(pullRefreshState)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Card(
@@ -443,7 +427,6 @@ fun ViewEditInvestmentScreen(
                         ),
                     backgroundColor = androidx.compose.ui.graphics.Color.White
                 ) {
-
                     Column(
                         modifier = Modifier
                             .padding(start = 16.dp, top = 22.dp)
@@ -603,9 +586,17 @@ fun ViewEditInvestmentScreen(
                         Spacer(modifier = Modifier.height(28.dp))
                     }
                 }
-                Spacer(modifier = Modifier.height(300.dp))
+                Spacer(modifier = Modifier.height(100.dp))
             }
-
+        }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            PullRefreshIndicator(
+                isRefreshing,
+                pullRefreshState
+            )
         }
     }
 }

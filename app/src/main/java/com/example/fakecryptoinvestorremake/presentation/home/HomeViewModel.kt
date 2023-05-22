@@ -14,9 +14,8 @@ import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases
 import com.example.fakecryptoinvestorremake.domain.util.InvestOrder
 import com.example.fakecryptoinvestorremake.domain.util.OrderType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,9 +30,29 @@ class HomeViewModel @Inject constructor(
 
     private var getInvestmentsJob: Job? = null
 
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
+    private var recentlyDeletedInvestment: Investment? = null
+
+    var scrollState: Boolean = true
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing.asStateFlow()
+
     init {
-        getBitcoinPrice()
+        refresh()
         getInvestments(InvestOrder.Profit(OrderType.Descending))
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.emit(true)
+            getBitcoinPrice()
+            delay(2000L)
+            _isRefreshing.emit(false)
+        }
     }
 
     private fun profitUpdate() {
@@ -56,7 +75,7 @@ class HomeViewModel @Inject constructor(
                         )
                 }
                 is Resource.Loading -> {
-                    _state.value = state.value.copy(isLoading = true, coins = null)
+                    _state.value = state.value.copy(isLoading = true)
                 }
             }
         }.launchIn(viewModelScope)
@@ -80,8 +99,8 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.SaveInvestment -> {
                 var coin: CoinDTO? = null
 
-                if (state.value.coins != null){
-                    coin = when(event.coinType){
+                if (state.value.coins != null) {
+                    coin = when (event.coinType) {
                         CoinType.BTC -> {
                             state.value.coins!!.find { it.symbol == event.coinType.symbol }
                         }
@@ -102,7 +121,6 @@ class HomeViewModel @Inject constructor(
                     name = "",
                     hypothesis = "",
                     dateOfCreation = System.currentTimeMillis(),
-                    //dateOfCreation = 0,
                     id = null,
                     exchangeRate = exchangeRate,
                     profit = 0.0,
@@ -115,7 +133,15 @@ class HomeViewModel @Inject constructor(
                 )
 
                 viewModelScope.launch {
-                    investmentUseCases.addInvestment(investment)
+                    try {
+                        investmentUseCases.addInvestment(investment)
+                    } catch (e: Exception) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "An error occurred investment not created"
+                            )
+                        )
+                    }
                 }
             }
 
@@ -145,6 +171,33 @@ class HomeViewModel @Inject constructor(
                     isAddSectionVisible = !state.value.isAddSectionVisible
                 )
             }
+            is HomeEvent.DeleteInvestment -> {
+                viewModelScope.launch {
+                    try {
+                        scrollState = false
+                        investmentUseCases.deleteInvestment(event.investment)
+                        recentlyDeletedInvestment = event.investment
+
+                    } catch (e: Exception) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't delete investment"
+                            )
+                        )
+                    }
+                }
+            }
+            HomeEvent.RestoreNote -> {
+                viewModelScope.launch {
+                    scrollState = false
+                    investmentUseCases.addInvestment(recentlyDeletedInvestment ?: return@launch)
+                    recentlyDeletedInvestment = null
+                }
+            }
         }
+    }
+
+    sealed class UiEvent {
+        data class ShowSnackbar(val message: String) : UiEvent()
     }
 }

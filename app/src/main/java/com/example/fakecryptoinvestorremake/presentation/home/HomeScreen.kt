@@ -3,24 +3,28 @@ package com.example.fakecryptoinvestorremake.presentation.home
 
 import android.annotation.SuppressLint
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,14 +35,22 @@ import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.presentation.Screen
 import com.example.fakecryptoinvestorremake.presentation.home.components.InvestListItem
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
+import com.example.fakecryptoinvestorremake.presentation.home.components.SwipeBackground
 import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigits
 import com.example.fakecryptoinvestorremake.theme.Background
 import com.example.fakecryptoinvestorremake.theme.GreyDark2
 import com.example.fakecryptoinvestorremake.theme.WhiteSoft
+import kotlinx.coroutines.launch
 import java.util.*
+import kotlinx.coroutines.flow.collectLatest as collectLatest1
 
-@OptIn(ExperimentalAnimationApi::class)
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(
+    ExperimentalMaterialApi::class,
+    ExperimentalFoundationApi::class
+)
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -48,6 +60,26 @@ fun HomeScreen(
     val state = viewModel.state.collectAsState()
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+
+    val lazyListState = rememberLazyListState()
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, { viewModel.refresh() })
+
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest1 { event ->
+            when (event) {
+                is HomeViewModel.UiEvent.ShowSnackbar -> {
+                    scope.launch {
+                        scaffoldState.snackbarHostState.showSnackbar(
+                            message = event.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         floatingActionButton = {
@@ -61,7 +93,6 @@ fun HomeScreen(
                         FloatingActionButton(
                             onClick = {
                                 viewModel.onEvent(HomeEvent.SaveInvestment(CoinType.ETH))
-                                viewModel.onEvent(HomeEvent.ToggleAddSection)
                             },
                             backgroundColor = GreyDark2
                         ) {
@@ -71,7 +102,6 @@ fun HomeScreen(
                         FloatingActionButton(
                             onClick = {
                                 viewModel.onEvent(HomeEvent.SaveInvestment(CoinType.BTC))
-                                viewModel.onEvent(HomeEvent.ToggleAddSection)
                             },
                             backgroundColor = GreyDark2
                         ) {
@@ -80,7 +110,6 @@ fun HomeScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-
                 FloatingActionButton(
                     onClick = {
                         viewModel.onEvent(HomeEvent.ToggleAddSection)
@@ -96,14 +125,17 @@ fun HomeScreen(
                     )
                 }
             }
-
         },
         scaffoldState = scaffoldState,
         backgroundColor = Background
     ) {
+
+
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
                 shape = RoundedCornerShape(
@@ -117,70 +149,60 @@ fun HomeScreen(
                 backgroundColor = GreyDark2,
                 elevation = 5.dp
             ) {
-                Column {
+                Column{
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 25.dp)
                             .padding(top = 40.dp, bottom = 33.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        if (state.value.coins != null) {
+                            val bitcoinPrice =
+                                state.value.coins?.find { it.symbol == CoinType.BTC.symbol }
+                                    ?.toCoinPrice()?.price?.let { double ->
+                                        dividingNumberIntoDigits(
+                                            double
+                                        )
+                                    }
 
-                        if (state.value.isLoading) {
-                            CircularProgressIndicator(
-                                color = WhiteSoft
-                            )
-                        } else {
+                            val bitcoinPriceFormatted = "BTC  $bitcoinPrice $"
 
-                            if (state.value.coins != null) {
-                                val bitcoinPrice =
-                                    state.value.coins?.find { it.symbol == CoinType.BTC.symbol }
-                                        ?.toCoinPrice()?.price?.let { double ->
-                                            dividingNumberIntoDigits(
-                                                double
-                                            )
-                                        }
+                            val ethereumPrice =
+                                state.value.coins?.find { it.symbol == CoinType.ETH.symbol }
+                                    ?.toCoinPrice()?.price?.let { double ->
+                                        dividingNumberIntoDigits(
+                                            double
+                                        )
+                                    }
 
-                                val bitcoinPriceFormatted = "BTC  $bitcoinPrice $"
+                            val ethereumPriceFormatted = "ETH  $ethereumPrice $"
 
-                                val ethereumPrice =
-                                    state.value.coins?.find { it.symbol == CoinType.ETH.symbol }
-                                        ?.toCoinPrice()?.price?.let { double ->
-                                            dividingNumberIntoDigits(
-                                                double
-                                            )
-                                        }
-
-                                val ethereumPriceFormatted = "ETH  $ethereumPrice $"
-
-                                Column(
-                                    modifier = Modifier
-                                        .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) }
-                                ){
-                                    Text(
-                                        text = bitcoinPriceFormatted,
-                                        color = WhiteSoft,
-                                        style = MaterialTheme.typography.h5
-                                    )
-                                    Text(
-                                        text = ethereumPriceFormatted,
-                                        color = WhiteSoft,
-                                        style = MaterialTheme.typography.h5
-                                    )
-                                }
-                            }  else {
+                            Column(
+                                modifier = Modifier
+                                    .clickable { viewModel.refresh() }
+                            ) {
                                 Text(
-                                    text = "Click to update",
+                                    text = bitcoinPriceFormatted,
                                     color = WhiteSoft,
-                                    style = MaterialTheme.typography.h5,
-                                    modifier = Modifier
-                                    .clickable { viewModel.onEvent(HomeEvent.UpdateCoinPrice) },
-                                    textDecoration =  TextDecoration.Underline
+                                    style = MaterialTheme.typography.h5
+                                )
+                                Text(
+                                    text = ethereumPriceFormatted,
+                                    color = WhiteSoft,
+                                    style = MaterialTheme.typography.h5
                                 )
                             }
+                        } else {
+                            Text(
+                                text = "Click to update",
+                                color = WhiteSoft,
+                                style = MaterialTheme.typography.h5,
+                                modifier = Modifier
+                                    .clickable { viewModel.refresh() },
+                                textDecoration = TextDecoration.Underline
+                            )
                         }
-
 
 
                         IconButton(
@@ -201,6 +223,7 @@ fun HomeScreen(
                             )
                         }
                     }
+
                     AnimatedVisibility(
                         visible = state.value.isOrderSectionVisible,
                         enter = fadeIn() + slideInVertically(),
@@ -218,46 +241,126 @@ fun HomeScreen(
                             }
                         )
                     }
+
                 }
             }
 
-
-            if (state.value.error.isNotBlank()) {
-                Spacer(modifier = Modifier.height(27.dp))
-                Text(
-                    text = state.value.error,
-                    color = MaterialTheme.colors.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .align(CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 11.dp)
-                ) {
-                    items(state.value.investments) { investment ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            InvestListItem(
-                                invest = investment,
-                                onItemClick = {
-                                    navController.navigate(
-                                        Screen.ViewEditInvestmentScreen.route +
-                                                "?investId=${investment.id}"
-                                    )
-                                }
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (state.value.error.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pullRefresh(pullRefreshState),
+                        contentAlignment = Center
+                    ) {
+                        Text(
+                            text = state.value.error,
+                            color = MaterialTheme.colors.error
+                        )
                     }
+
+                } else {
+                    if (viewModel.scrollState) {
+                        scope.launch { lazyListState.scrollToItem(0) }
+                    }
+                    viewModel.scrollState = true
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        state = lazyListState,
+                        contentPadding = PaddingValues(top = 7.dp, bottom = 100.dp),
+                    ) {
+                        items(
+                            items = state.value.investments,
+                            key = { investmentKey -> investmentKey.id!! },
+                            itemContent = { investmentItem ->
+                                val currentItem by rememberUpdatedState(investmentItem)
+                                val dismissState = rememberDismissState(
+                                    confirmStateChange = {
+                                        if (it == DismissValue.DismissedToStart || it == DismissValue.DismissedToEnd) {
+                                            viewModel.onEvent(HomeEvent.DeleteInvestment(currentItem))
+                                            scope.launch {
+                                                val result =
+                                                    scaffoldState.snackbarHostState.showSnackbar(
+                                                        message = "Note deleted",
+                                                        actionLabel = "Undo"
+                                                    )
+                                                if (result == SnackbarResult.ActionPerformed) {
+                                                    viewModel.onEvent(HomeEvent.RestoreNote)
+                                                }
+                                            }
+                                            true
+                                        } else false
+                                    }
+                                )
+
+                                if (dismissState.isDismissed(DismissDirection.EndToStart) ||
+                                    dismissState.isDismissed(DismissDirection.StartToEnd)
+                                ) {
+                                    viewModel.onEvent(HomeEvent.DeleteInvestment(investmentItem))
+                                    scope.launch {
+                                        val result = scaffoldState.snackbarHostState.showSnackbar(
+                                            message = "Investment deleted",
+                                            actionLabel = "Undo"
+                                        )
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            viewModel.onEvent(HomeEvent.RestoreNote)
+                                        }
+                                    }
+                                }
+
+                                SwipeToDismiss(
+                                    state = dismissState,
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp)
+                                        .animateItemPlacement(),
+                                    directions = setOf(
+                                        DismissDirection.StartToEnd,
+                                        DismissDirection.EndToStart
+                                    ),
+                                    dismissThresholds = { direction ->
+                                        FractionalThreshold(
+                                            if (direction == DismissDirection.StartToEnd) 0.66f else 0.50f
+                                        )
+                                    },
+                                    background = {
+                                        SwipeBackground(dismissState)
+                                    },
+                                    dismissContent = {
+                                        InvestListItem(
+                                            invest = investmentItem,
+                                            onItemClick = {
+                                                navController.navigate(
+                                                    Screen.ViewEditInvestmentScreen.route +
+                                                            "?investId=${investmentItem.id}"
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
+
                 }
+
             }
+
+        }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = TopCenter
+        ) {
+            PullRefreshIndicator(
+                isRefreshing,
+                pullRefreshState
+            )
         }
     }
-
-
 }

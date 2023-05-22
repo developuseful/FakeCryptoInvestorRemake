@@ -10,15 +10,12 @@ import com.example.fakecryptoinvestorremake.common.Resource
 import com.example.fakecryptoinvestorremake.data.remote.dto.toCoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.domain.models.InvalidInvestmentException
-import com.example.fakecryptoinvestorremake.domain.models.Investment
 import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetCoinsUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.InvestmentUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,7 +56,9 @@ class ViewEditInvestmentViewModel @Inject constructor(
 
     private var currentInvestId: Int? = null
 
-    private var recentlyDeletedInvestment: Investment? = null
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing.asStateFlow()
 
     init {
         savedStateHandle.get<Int>("investId")?.let { investId ->
@@ -89,11 +88,19 @@ class ViewEditInvestmentViewModel @Inject constructor(
                         purchaseCommission = investment.purchaseCommission.toString(),
                         salesCommission = investment.salesCommission.toString()
                     )
-                    getBitcoinPrice(CoinType.valueOf(investment.symbol))
+                    getCoinPrice()
                 }
             }
         }
+    }
 
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.emit(true)
+            getCoinPrice()
+            delay(2000L)
+            _isRefreshing.emit(false)
+        }
     }
 
     fun onEvent(event: ViewEditInvestmentEvent) {
@@ -148,7 +155,6 @@ class ViewEditInvestmentViewModel @Inject constructor(
                                 message = "Investment saved"
                             )
                         )
-                        _eventFlow.emit(UiEvent.SaveInvest)
                     } catch (e: InvalidInvestmentException) {
                         _eventFlow.emit(
                             UiEvent.ShowSnackbar(
@@ -157,8 +163,6 @@ class ViewEditInvestmentViewModel @Inject constructor(
                         )
                     }
                 }
-
-
             }
             is ViewEditInvestmentEvent.ChangeValueFocus -> {
                 _investValue.value = _investValue.value.copy(
@@ -171,29 +175,8 @@ class ViewEditInvestmentViewModel @Inject constructor(
                     text = event.value
                 )
             }
-            is ViewEditInvestmentEvent.DeleteInvestment -> {
-                viewModelScope.launch {
-                    try {
-                        investmentUseCases.deleteInvestment(event.investment)
-                        recentlyDeletedInvestment = event.investment
-                        _eventFlow.emit(UiEvent.DeleteInvest)
-                    } catch (e: Exception) {
-                        _eventFlow.emit(
-                            UiEvent.ShowSnackbar(
-                                message = e.message ?: "Couldn't delete investment"
-                            )
-                        )
-                    }
-                }
-            }
-            ViewEditInvestmentEvent.RestoreInvest -> {
-                viewModelScope.launch {
-                    investmentUseCases.addInvestment(recentlyDeletedInvestment ?: return@launch)
-                    recentlyDeletedInvestment = null
-                }
-            }
-            ViewEditInvestmentEvent.GetCoinPrice -> {
-                getBitcoinPrice()
+            is ViewEditInvestmentEvent.GetCoinPrice -> {
+                getCoinPrice()
             }
             is ViewEditInvestmentEvent.EnteredPurchaseCommission -> {
                 _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
@@ -255,7 +238,7 @@ class ViewEditInvestmentViewModel @Inject constructor(
         }
     }
 
-    private fun getBitcoinPrice(coinType: CoinType? = null) {
+    private fun getCoinPrice() {
         getCoinsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -264,7 +247,9 @@ class ViewEditInvestmentViewModel @Inject constructor(
                         investmentUseCases.getInvestment(currentInvestId!!)?.also { investment ->
                             _viewEditInvestmentState.value = viewEditInvestmentState.value.copy(
                                 currentInvestment = investment,
-                                currentExchangeRate = result.data?.find { it.symbol == coinType?.symbol }?.toCoinPrice()?.price ?: 0.0,
+                                currentExchangeRate = result.data?.find {
+                                    it.symbol == viewEditInvestmentState.value.currentInvestment?.symbol.toString()
+                                }?.toCoinPrice()?.price ?: 0.0,
                                 isLoading = false,
                                 error = ""
                             )
@@ -296,7 +281,5 @@ class ViewEditInvestmentViewModel @Inject constructor(
     }
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
-        object SaveInvest : UiEvent()
-        object DeleteInvest : UiEvent()
     }
 }

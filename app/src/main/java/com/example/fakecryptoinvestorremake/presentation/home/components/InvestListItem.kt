@@ -103,6 +103,4 @@ fun InvestListItem(
             )
         }
     }
-
-
 }
