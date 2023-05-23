@@ -8,10 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.fakecryptoinvestorremake.common.Constants
 import com.example.fakecryptoinvestorremake.common.Resource
 import com.example.fakecryptoinvestorremake.data.remote.dto.toCoinPrice
-import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.domain.models.InvalidInvestmentException
 import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
-import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetCoinsUseCase
+import com.example.fakecryptoinvestorremake.domain.use_case.get_coin_price.GetCoinsUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.InvestmentUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay

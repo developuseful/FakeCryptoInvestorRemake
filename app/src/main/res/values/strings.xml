@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Fake Crypto Investor Remake</string>
+    <string name="app_name">Crypto Investment</string>
 
     <plurals name="plurals_minutes">
         <item quantity="zero">0</item>
@@ -9,7 +9,6 @@
         <item quantity="many">%1$d minutes</item>
         <item quantity="other">%1$d minutes</item>
     </plurals>
-
 
 
      <plurals name="minutes">

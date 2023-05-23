@@ -9,7 +9,7 @@ import com.example.fakecryptoinvestorremake.data.remote.dto.toCoinPrice
 import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.domain.models.Investment
 import com.example.fakecryptoinvestorremake.domain.use_case.ProfitUpdateUseCase
-import com.example.fakecryptoinvestorremake.domain.use_case.get_bitcoin_price.GetCoinsUseCase
+import com.example.fakecryptoinvestorremake.domain.use_case.get_coin_price.GetCoinsUseCase
 import com.example.fakecryptoinvestorremake.domain.use_case.investment_use_cases.InvestmentUseCases
 import com.example.fakecryptoinvestorremake.domain.util.InvestOrder
 import com.example.fakecryptoinvestorremake.domain.util.OrderType
@@ -79,7 +79,6 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
-        profitUpdate()
     }
 
     private fun getInvestments(investOrder: InvestOrder) {

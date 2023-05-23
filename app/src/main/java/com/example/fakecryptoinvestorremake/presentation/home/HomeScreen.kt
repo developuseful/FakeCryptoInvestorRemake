@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -127,15 +128,14 @@ fun HomeScreen(
             }
         },
         scaffoldState = scaffoldState,
-        backgroundColor = Background
+        backgroundColor = Background,
+        modifier = Modifier
+            .pullRefresh(pullRefreshState)
     ) {
-
-
 
         Column(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
         ) {
             Card(
                 shape = RoundedCornerShape(
@@ -247,20 +247,21 @@ fun HomeScreen(
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .pullRefresh(pullRefreshState),
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.value.error.isNotBlank()) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .pullRefresh(pullRefreshState),
+                            .fillMaxSize(),
                         contentAlignment = Center
                     ) {
                         Text(
                             text = state.value.error,
-                            color = MaterialTheme.colors.error
+                            color = MaterialTheme.colors.error,
+                            modifier = Modifier
+                                .padding(28.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
 
