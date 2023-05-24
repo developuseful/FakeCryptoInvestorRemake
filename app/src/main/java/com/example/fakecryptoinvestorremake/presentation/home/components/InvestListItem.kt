@@ -36,11 +36,7 @@ fun InvestListItem(
             .fillMaxWidth()
             .height(75.dp)
             .padding(horizontal = 10.dp)
-            .border(
-                width = 1.dp,
-                color = GreyLight,
-                shape = RoundedCornerShape(8.dp)
-            ),
+            ,
         backgroundColor = Color.White,
 
     ) {

@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.fakecryptoinvestorremake.theme.GreenSoft
+import com.example.fakecryptoinvestorremake.theme.RedLight
 import com.example.fakecryptoinvestorremake.theme.RedSoft
 import com.example.fakecryptoinvestorremake.theme.WhiteSoft
 
@@ -27,7 +28,7 @@ fun SwipeBackground(dismissState: DismissState) {
     val direction = dismissState.dismissDirection ?: return
     val color by animateColorAsState(
         when (dismissState.targetValue) {
-            DismissValue.Default -> Color.LightGray
+            DismissValue.Default -> RedLight
             DismissValue.DismissedToEnd -> RedSoft
             DismissValue.DismissedToStart -> RedSoft
         }

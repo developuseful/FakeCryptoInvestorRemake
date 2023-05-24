@@ -187,6 +187,7 @@ fun HomeScreen(
                                     color = WhiteSoft,
                                     style = MaterialTheme.typography.h5
                                 )
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = ethereumPriceFormatted,
                                     color = WhiteSoft,
@@ -289,7 +290,7 @@ fun HomeScreen(
                                             scope.launch {
                                                 val result =
                                                     scaffoldState.snackbarHostState.showSnackbar(
-                                                        message = "Note deleted",
+                                                        message = "Investment deleted",
                                                         actionLabel = "Undo"
                                                     )
                                                 if (result == SnackbarResult.ActionPerformed) {

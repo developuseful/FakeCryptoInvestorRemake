@@ -17,13 +17,12 @@ class GetCoinsUseCase @Inject constructor(
     private val coinRepository: CoinRepository,
     private val investmentRepository: InvestmentRepository
 ) {
-
     operator fun invoke(): Flow<Resource<List<CoinDTO>>> = flow {
         try {
             emit(Resource.Loading<List<CoinDTO>>())
             val coins = coinRepository.getCoins()
-            profitUpdateUseCase(coins)
             emit(Resource.Success<List<CoinDTO>>(coins))
+            profitUpdateUseCase(coins)
         } catch (e: HttpException) {
             emit(
                 Resource.Error<List<CoinDTO>>(
@@ -59,9 +58,6 @@ class GetCoinsUseCase @Inject constructor(
                     )
                 )
             }
-
-        } catch (e: Exception) {
-
-        }
+        } catch (e: Exception) {}
     }
 }
