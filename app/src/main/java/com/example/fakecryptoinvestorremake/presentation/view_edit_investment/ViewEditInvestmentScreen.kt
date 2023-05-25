@@ -174,12 +174,7 @@ fun ViewEditInvestmentScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .border(
-                            width = 1.dp,
-                            color = GreyLight,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
+                        .padding(horizontal = 10.dp),
                     backgroundColor = androidx.compose.ui.graphics.Color.White,
                 ) {
                     Column(
@@ -228,11 +223,6 @@ fun ViewEditInvestmentScreen(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(
-                                    width = 1.dp,
-                                    color = GreyLight,
-                                    shape = RoundedCornerShape(8.dp)
-                                )
                         ) {
                             Column(
                                 modifier = Modifier
@@ -419,12 +409,7 @@ fun ViewEditInvestmentScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .border(
-                            width = 1.dp,
-                            color = GreyLight,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
+                        .padding(horizontal = 10.dp),
                     backgroundColor = androidx.compose.ui.graphics.Color.White
                 ) {
                     Column(
@@ -496,12 +481,7 @@ fun ViewEditInvestmentScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .border(
-                            width = 1.dp,
-                            color = GreyLight,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
+                        .padding(horizontal = 10.dp),
                     backgroundColor = androidx.compose.ui.graphics.Color.White
                 ) {
 
@@ -547,15 +527,9 @@ fun ViewEditInvestmentScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .border(
-                            width = 1.dp,
-                            color = GreyLight,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
+                        .padding(horizontal = 10.dp),
                     backgroundColor = androidx.compose.ui.graphics.Color.White
                 ) {
-
                     Column(
                         modifier = Modifier
                             .padding(start = 16.dp, top = 22.dp, end = 32.dp)
