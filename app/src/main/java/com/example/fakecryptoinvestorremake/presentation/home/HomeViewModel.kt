@@ -42,6 +42,7 @@ class HomeViewModel @Inject constructor(
         get() = _isRefreshing.asStateFlow()
 
     init {
+        _state.value.isInvestmentsListEmpty = false
         refresh()
         getInvestments(InvestOrder.Profit(OrderType.Descending))
     }
@@ -89,6 +90,13 @@ class HomeViewModel @Inject constructor(
                     investments = investments,
                     investOrder = investOrder
                 )
+                _state.value.isInvestmentsListEmpty = investments.isEmpty()
+                if (investments.isEmpty()){
+                    delay(1000L)
+                    _state.value = state.value.copy(
+                        isOrderSectionVisible = false
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -111,9 +119,6 @@ class HomeViewModel @Inject constructor(
 
                 val exchangeRate = coin?.toCoinPrice()?.price ?: return
 
-                _state.value = state.value.copy(
-                    isOrderSectionVisible = true
-                )
                 onEvent(HomeEvent.Order(InvestOrder.Id(OrderType.Descending)))
 
                 val investment = Investment(
@@ -132,6 +137,7 @@ class HomeViewModel @Inject constructor(
                 )
 
                 viewModelScope.launch {
+                    delay(30L)
                     try {
                         investmentUseCases.addInvestment(investment)
                     } catch (e: Exception) {
@@ -141,7 +147,12 @@ class HomeViewModel @Inject constructor(
                             )
                         )
                     }
+                    delay(500L)
+                    _state.value = state.value.copy(
+                        isOrderSectionVisible = true
+                    )
                 }
+
             }
 
             is HomeEvent.Order -> {

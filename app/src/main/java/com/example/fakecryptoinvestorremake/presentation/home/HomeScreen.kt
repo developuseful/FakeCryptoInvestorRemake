@@ -2,6 +2,7 @@ package com.example.fakecryptoinvestorremake.presentation.home
 
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
@@ -38,9 +39,8 @@ import com.example.fakecryptoinvestorremake.presentation.home.components.InvestL
 import com.example.fakecryptoinvestorremake.presentation.home.components.OrderSection
 import com.example.fakecryptoinvestorremake.presentation.home.components.SwipeBackground
 import com.example.fakecryptoinvestorremake.presentation.util.dividingNumberIntoDigits
-import com.example.fakecryptoinvestorremake.theme.Background
-import com.example.fakecryptoinvestorremake.theme.GreyDark2
-import com.example.fakecryptoinvestorremake.theme.WhiteSoft
+import com.example.fakecryptoinvestorremake.theme.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlinx.coroutines.flow.collectLatest as collectLatest1
@@ -129,6 +129,16 @@ fun HomeScreen(
         },
         scaffoldState = scaffoldState,
         backgroundColor = Background,
+        snackbarHost = {
+            SnackbarHost(it) { data ->
+                Snackbar(
+                    actionColor = GreenSoft,
+                    backgroundColor = GreyDark2,
+                    snackbarData = data,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
         modifier = Modifier
             .pullRefresh(pullRefreshState)
     ) {
@@ -149,7 +159,7 @@ fun HomeScreen(
                 backgroundColor = GreyDark2,
                 elevation = 5.dp
             ) {
-                Column{
+                Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -252,21 +262,20 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.value.error.isNotBlank()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Center
+                    CenterText(
+                        text = state.value.error,
+                        color = MaterialTheme.colors.error
+                    )
+                } else {
+
+                    AnimatedVisibility(
+                        visible = state.value.isInvestmentsListEmpty,
+                        enter = fadeIn() + slideInHorizontally(),
+                        exit = fadeOut() + slideOutHorizontally()
                     ) {
-                        Text(
-                            text = state.value.error,
-                            color = MaterialTheme.colors.error,
-                            modifier = Modifier
-                                .padding(28.dp),
-                            textAlign = TextAlign.Center
-                        )
+                        CenterText(text = "A list of investments will be displayed in this place, and now is the best time to create one such")
                     }
 
-                } else {
                     if (viewModel.scrollState) {
                         scope.launch { lazyListState.scrollToItem(0) }
                     }
@@ -286,7 +295,11 @@ fun HomeScreen(
                                 val dismissState = rememberDismissState(
                                     confirmStateChange = {
                                         if (it == DismissValue.DismissedToStart || it == DismissValue.DismissedToEnd) {
-                                            viewModel.onEvent(HomeEvent.DeleteInvestment(currentItem))
+                                            viewModel.onEvent(
+                                                HomeEvent.DeleteInvestment(
+                                                    currentItem
+                                                )
+                                            )
                                             scope.launch {
                                                 val result =
                                                     scaffoldState.snackbarHostState.showSnackbar(
@@ -307,10 +320,11 @@ fun HomeScreen(
                                 ) {
                                     viewModel.onEvent(HomeEvent.DeleteInvestment(investmentItem))
                                     scope.launch {
-                                        val result = scaffoldState.snackbarHostState.showSnackbar(
-                                            message = "Investment deleted",
-                                            actionLabel = "Undo"
-                                        )
+                                        val result =
+                                            scaffoldState.snackbarHostState.showSnackbar(
+                                                message = "Investment deleted",
+                                                actionLabel = "Undo"
+                                            )
                                         if (result == SnackbarResult.ActionPerformed) {
                                             viewModel.onEvent(HomeEvent.RestoreNote)
                                         }
@@ -351,7 +365,6 @@ fun HomeScreen(
                     }
 
                 }
-
             }
 
         }
@@ -364,5 +377,22 @@ fun HomeScreen(
                 pullRefreshState
             )
         }
+    }
+}
+
+@Composable
+private fun CenterText(text: String, color: androidx.compose.ui.graphics.Color = Grey666) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Center
+    ) {
+        Text(
+            text = text,
+            color = color,
+            modifier = Modifier
+                .padding(48.dp),
+            textAlign = TextAlign.Center
+        )
     }
 }

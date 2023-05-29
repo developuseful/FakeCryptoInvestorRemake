@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fakecryptoinvestorremake.R
-import com.example.fakecryptoinvestorremake.domain.models.CoinType
 import com.example.fakecryptoinvestorremake.presentation.util.*
 import com.example.fakecryptoinvestorremake.presentation.view_edit_investment.components.TransparentHintTextField
 import com.example.fakecryptoinvestorremake.theme.*
@@ -73,6 +72,7 @@ fun ViewEditInvestmentScreen(
                         )
                     }
                 }
+                else -> {}
             }
         }
     }
@@ -95,6 +95,16 @@ fun ViewEditInvestmentScreen(
         },
         scaffoldState = scaffoldState,
         backgroundColor = Background,
+        snackbarHost = {
+            SnackbarHost(it) { data ->
+                Snackbar(
+                    actionColor = GreenSoft,
+                    backgroundColor = GreyDark2,
+                    snackbarData = data,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
         modifier = Modifier
             .pullRefresh(pullRefreshState)
     ) {

@@ -11,7 +11,7 @@ val Background = Color(0xFFF5F5F5)
 
 val GreyDark = Color(0xFF2F2F2F)
 //val GreyDark2 = Color(0xFF2B2B2B)
-val GreyDark2 = Color(0xFF1A1A1A)
+val GreyDark2 = Color(0xFF222222)
 val Grey666 = Color(0xFF666666)
 val GreyMiddle = Color(0xFFD2D2D2)
 val GreyLight = Color(0xFFF3F3F3)
